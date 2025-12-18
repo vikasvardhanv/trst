@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { BrandLogo, INDUSTRY_AGENTS } from '../constants';
 import type { IndustryAgent } from '../types';
 
@@ -10,32 +11,42 @@ interface IndustryAgentHubProps {
 const AgentCard: React.FC<{ agent: IndustryAgent; onClick: () => void }> = ({ agent, onClick }) => (
   <button
     onClick={onClick}
-    className="glass-card p-6 rounded-2xl text-left w-full h-full flex flex-col group overflow-hidden relative hover:scale-[1.02] transition-all duration-300"
+    className="glass-card p-6 rounded-2xl text-left w-full h-full flex flex-col group overflow-hidden relative hover:scale-[1.02] transition-all duration-300 cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20"
   >
-    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
     <div className="relative z-10">
-      <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
+      <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300 p-3 rounded-xl bg-white/5 w-fit">
         {agent.icon}
       </div>
-      <span className="text-xs font-bold text-white/40 uppercase tracking-widest mb-2 block">{agent.industry}</span>
-      <h3 className="font-bold text-lg text-white mb-2">{agent.name}</h3>
-      <p className="text-gray-400 text-sm leading-relaxed mb-4">{agent.description}</p>
+      <span className="text-xs font-bold text-sky-400 uppercase tracking-widest mb-2 block">{agent.industry}</span>
+      <h3 className="font-bold text-xl text-white mb-3">{agent.name}</h3>
+      <p className="text-gray-300 text-sm leading-relaxed mb-6">{agent.description}</p>
 
       <div className="flex flex-wrap gap-2 mt-auto">
         {agent.features.slice(0, 3).map((feature, idx) => (
-          <span key={idx} className="text-xs bg-white/5 text-white/60 px-2 py-1 rounded-full border border-white/10">
+          <span key={idx} className="text-[10px] font-medium bg-white/10 text-white/80 px-2.5 py-1 rounded-full border border-white/5">
             {feature}
           </span>
         ))}
         {agent.features.length > 3 && (
-          <span className="text-xs text-white/40">+{agent.features.length - 3} more</span>
+          <span className="text-[10px] font-medium text-white/40 flex items-center">+{agent.features.length - 3} more</span>
         )}
       </div>
 
       {agent.demoAvailable && (
-        <div className="mt-4 flex items-center gap-2">
-          <span className="h-2 w-2 bg-emerald-400 rounded-full animate-pulse"></span>
-          <span className="text-xs text-emerald-400 font-bold uppercase tracking-widest">Live Demo Available</span>
+        <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between w-full group-hover:border-white/20 transition-colors">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Live Demo</span>
+          </div>
+          <div className="text-white/40 group-hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </div>
         </div>
       )}
     </div>

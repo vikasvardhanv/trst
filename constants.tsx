@@ -331,7 +331,7 @@ export const INDUSTRY_AGENTS: IndustryAgent[] = [
     name: 'Clinic Agent',
     industry: 'Healthcare',
     description: 'Automated patient scheduling, triage, and FAQs for medical clinics.',
-    icon: <ClinicIcon />,
+    icon: <ClinicIcon className="w-8 h-8 text-rose-400" />,
     features: ['Appointment Booking', 'Symptom Triage', 'Patient FAQs', 'Prescription Refills'],
     demoAvailable: true
   },
@@ -340,7 +340,7 @@ export const INDUSTRY_AGENTS: IndustryAgent[] = [
     name: 'Construction Agent',
     industry: 'Construction',
     description: 'Project management, safety compliance, and resource allocation assistant.',
-    icon: <ConstructionIcon />,
+    icon: <ConstructionIcon className="w-8 h-8 text-amber-400" />,
     features: ['Project Tracking', 'Safety Checklists', 'Resource Management', 'Daily Reports'],
     demoAvailable: true
   },
@@ -349,7 +349,7 @@ export const INDUSTRY_AGENTS: IndustryAgent[] = [
     name: 'Dealership Agent',
     industry: 'Automotive',
     description: 'Vehicle inventory, test drive scheduling, and service appointments.',
-    icon: <DealershipIcon />,
+    icon: <DealershipIcon className="w-8 h-8 text-blue-400" />,
     features: ['Inventory Search', 'Test Drive Booking', 'Service Scheduling', 'Financing Calc'],
     demoAvailable: true
   },
@@ -358,7 +358,7 @@ export const INDUSTRY_AGENTS: IndustryAgent[] = [
     name: 'Restaurant Agent',
     industry: 'Hospitality',
     description: 'Table reservations, menu inquiries, and order management.',
-    icon: <RestaurantIcon />,
+    icon: <RestaurantIcon className="w-8 h-8 text-emerald-400" />,
     features: ['Table Reservations', 'Menu Q&A', 'Order Taking', 'Event Booking'],
     demoAvailable: true
   },
@@ -367,7 +367,7 @@ export const INDUSTRY_AGENTS: IndustryAgent[] = [
     name: 'Salon Agent',
     industry: 'Beauty & Wellness',
     description: 'Appointment booking, stylist selection, and service consultations.',
-    icon: <SalonIcon />,
+    icon: <SalonIcon className="w-8 h-8 text-purple-400" />,
     features: ['Appointment Booking', 'Stylist Selection', 'Service Menu', 'Reminders'],
     demoAvailable: true
   }
