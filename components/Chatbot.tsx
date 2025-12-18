@@ -144,18 +144,31 @@ A Potential Client`;
           )}
 
           {appState === AppState.BOOKING && !isLoading && (
-             <div className="flex justify-start pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+             <div className="flex flex-col gap-4 justify-start pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                  <a 
                     href={mailtoUrl} 
-                    className="group bg-sky-500 text-white font-bold py-4 px-8 rounded-2xl hover:bg-sky-400 transition-all duration-300 shadow-lg shadow-sky-500/20 inline-flex items-center gap-3 relative overflow-hidden"
+                    onClick={(e) => {
+                        // Optional: Prevent default if you want to force the Calendly flow first, 
+                        // but usually mailto is fine to open in background.
+                        // e.preventDefault(); 
+                        // window.open(mailtoUrl, '_blank');
+                        
+                        // After a short delay, redirect to Calendly
+                        setTimeout(() => {
+                            window.open('https://calendly.com/highshift-media/30min', '_blank');
+                        }, 1000);
+                    }}
+                    className="group bg-sky-500 text-white font-bold py-4 px-8 rounded-2xl hover:bg-sky-400 transition-all duration-300 shadow-lg shadow-sky-500/20 inline-flex items-center gap-3 relative overflow-hidden w-fit"
                 >
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                     </svg>
-                    Send Information to info@highshiftmedia.com
+                    Schedule Consultation & Send Info
                 </a>
+                <p className="text-white/40 text-xs max-w-md">
+                    Clicking this will open your email client to send us your project details, and then redirect you to our calendar to book a time.
+                </p>
              </div>
           )}
           <div ref={chatEndRef} />
