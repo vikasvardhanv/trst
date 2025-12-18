@@ -4,6 +4,7 @@ import { BUSINESS_PLAN_QUESTIONS, BrandLogo } from '../constants';
 import { generateBusinessPlan } from '../services/geminiService';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 interface BusinessPlannerProps {
@@ -89,8 +90,19 @@ export const BusinessPlanner: React.FC<BusinessPlannerProps> = ({ onRestart }) =
                                     <div className="bg-sky-500 h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_12px_rgba(14,165,233,0.5)]" style={{ width: `${progress}%` }}></div>
                                 </div>
                             </div>
-                            <h3 className="text-3xl sm:text-4xl font-bold text-white mb-10 leading-tight tracking-tight animate-in fade-in slide-in-from-left-4 duration-500">
-                                {BUSINESS_PLAN_QUESTIONS[currentQuestionIndex]}
+                            <h3 className="text-3xl sm:text-4xl font-bold text-white mb-10 leading-tight tracking-tight">
+                                <AnimatePresence mode="wait">
+                                    <motion.span
+                                        key={currentQuestionIndex}
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="block"
+                                    >
+                                        {BUSINESS_PLAN_QUESTIONS[currentQuestionIndex]}
+                                    </motion.span>
+                                </AnimatePresence>
                             </h3>
                         </div>
                     )}

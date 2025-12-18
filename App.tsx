@@ -17,6 +17,7 @@ import type { Service, ChatMessage, Question } from './types';
 import { AppState } from './types';
 import { QUESTIONS } from './constants';
 import { generateSummary } from './services/geminiService';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.SERVICE_SELECTION);
@@ -189,8 +190,19 @@ function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-900">
-      {renderContent()}
+    <div className="w-full min-h-screen bg-gray-900 text-white overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={appState}
+          initial={{ opacity: 0, filter: "blur(10px)" }}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, filter: "blur(10px)" }}
+          transition={{ duration: 0.5 }}
+          className="w-full min-h-screen"
+        >
+          {renderContent()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

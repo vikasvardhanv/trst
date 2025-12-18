@@ -3,6 +3,7 @@ import { BrandLogo, MarketingHubIcon, EmailIcon, SocialMediaIcon } from '../cons
 import { generateMarketingContent, generateEmailCampaign } from '../services/geminiService';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MarketingHubProps {
   onRestart: () => void;
@@ -518,7 +519,17 @@ export const MarketingHub: React.FC<MarketingHubProps> = ({ onRestart }) => {
 
         {/* Content */}
         <div className="flex-1 p-6 overflow-y-auto scrollbar-hide">
-          {renderContent()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

@@ -45,7 +45,12 @@ const AgentCard: React.FC<{ agent: IndustryAgent; onClick: () => void }> = ({ ag
 export const IndustryAgentHub: React.FC<IndustryAgentHubProps> = ({ onSelectAgent, onRestart }) => {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start p-6 sm:p-10 lg:p-16 relative">
-      <div className="w-full max-w-7xl">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-7xl"
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-4">
@@ -95,15 +100,35 @@ export const IndustryAgentHub: React.FC<IndustryAgentHubProps> = ({ onSelectAgen
         </div>
 
         {/* Agent Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div 
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           {INDUSTRY_AGENTS.map((agent) => (
-            <AgentCard
+            <motion.div
               key={agent.id}
-              agent={agent}
-              onClick={() => onSelectAgent(agent.id)}
-            />
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 }
+              }}
+            >
+              <AgentCard
+                agent={agent}
+                onClick={() => onSelectAgent(agent.id)}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* CTA Section */}
         <div className="mt-12 text-center">
@@ -118,7 +143,7 @@ export const IndustryAgentHub: React.FC<IndustryAgentHubProps> = ({ onSelectAgen
             Contact Us for Custom Solutions
           </a>
         </div>
-      </div>
+      </motion.div>
 
       <footer className="w-full text-center mt-20 p-4 text-xs font-medium tracking-widest text-white/30 uppercase">
         &copy; {new Date().getFullYear()} Highshift Media &bull; Industry AI Agents

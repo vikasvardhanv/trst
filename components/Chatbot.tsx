@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { ChatMessage, Service, Question } from '../types';
 import { AppState } from '../types';
 import { BrandLogo, WhatsAppIcon } from '../constants';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ChatbotProps {
   service: Service;
@@ -24,22 +25,32 @@ const LoadingIndicator: React.FC = () => (
 );
 
 const BotMessage: React.FC<{ text: string }> = ({ text }) => (
-    <div className="flex items-start gap-4 animate-in fade-in slide-in-from-left-4 duration-500">
+    <motion.div 
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex items-start gap-4"
+    >
         <div className="flex-shrink-0 h-10 w-10 rounded-full glass-panel flex items-center justify-center p-1 border-white/20">
              <BrandLogo className="w-full h-full" />
         </div>
         <div className="glass-panel rounded-2xl rounded-tl-none px-5 py-3.5 max-w-md border-white/10">
             <p className="text-white/90 leading-relaxed text-[15px] whitespace-pre-wrap">{text}</p>
         </div>
-    </div>
+    </motion.div>
 );
 
 const UserMessage: React.FC<{ text: string }> = ({ text }) => (
-    <div className="flex justify-end animate-in fade-in slide-in-from-right-4 duration-500">
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+      className="flex justify-end"
+    >
         <div className="bg-sky-500/20 backdrop-blur-md border border-sky-400/30 rounded-2xl rounded-br-none px-5 py-3.5 max-w-md">
             <p className="text-white leading-relaxed text-[15px]">{text}</p>
         </div>
-    </div>
+    </motion.div>
 );
 
 
