@@ -42,7 +42,7 @@ Your unique value proposition sets you apart from existing competitors. Focus on
 
 ## Next Steps
 Schedule a consultation with our team to refine this plan and develop detailed implementation strategies.`,
-  agent: "I'd be happy to help you with that! This is a demo response. To enable full AI capabilities, please add your Gemini API key to the .env file. For now, you can explore the interface and see how the agent interactions work.",
+  agent: "I'd be happy to help you with that! This is a demo response. To enable full AI capabilities, please add your Gemini API key to your environment variables. For now, you can explore the interface and see how the agent interactions work.",
   marketing: `# Social Media Post
 
 🚀 Exciting news! We're revolutionizing the way businesses connect with customers.

@@ -99,9 +99,9 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
     const startConversation = async () => {
         if (status !== 'idle' && status !== 'error') return;
 
-        const apiKey = process.env.API_KEY;
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
         if (!apiKey || apiKey.length < 10) {
-            setError("API Key missing. Please add GEMINI_API_KEY to your .env file.");
+            setError("API Key missing. Please add VITE_GEMINI_API_KEY to your environment variables.");
             setStatus('error');
             return;
         }
@@ -121,7 +121,7 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
             inputAudioContextRef.current = inputCtx;
             outputAudioContextRef.current = outputCtx;
 
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+            const ai = new GoogleGenAI({ apiKey: apiKey });
             
             const sessionPromise = ai.live.connect({
                 model: 'gemini-2.0-flash-exp',
@@ -158,6 +158,7 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
                             scriptProcessor.connect(inputCtx.destination);
                             setStatus('listening');
                         } catch (e) {
+                            console.error("Microphone access failed:", e);
                             setError("Microphone access failed.");
                             stopConversation();
                         }
@@ -229,9 +230,9 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
             });
             
             sessionRef.current = await sessionPromise;
-        } catch (err) {
-            console.error(err);
-            setError("Could not initiate voice protocol.");
+        } catch (err: any) {
+            console.error("Connection Error:", err);
+            setError(`Connection failed: ${err.message || "Check API Key or Network"}`);
             setStatus('error');
         }
     };
