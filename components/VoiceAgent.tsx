@@ -99,6 +99,13 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
     const startConversation = async () => {
         if (status !== 'idle' && status !== 'error') return;
 
+        const apiKey = process.env.API_KEY;
+        if (!apiKey || apiKey.length < 10) {
+            setError("API Key missing. Please add GEMINI_API_KEY to your .env file.");
+            setStatus('error');
+            return;
+        }
+
         setStatus('connecting');
         setError(null);
         setTranscriptions([{ sender: 'bot', text: "Establishing Highshift secure audio link...", isFinal: true }]);
@@ -117,15 +124,17 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
             
             const sessionPromise = ai.live.connect({
-                model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+                model: 'gemini-2.0-flash-exp',
                 config: {
                     responseModalities: [Modality.AUDIO],
                     inputAudioTranscription: {},
                     outputAudioTranscription: {},
                     speechConfig: {
-                        voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } }
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
                     },
-                    systemInstruction: 'You are Highshift AI, a professional consulting agent. Speak clearly, be brief, and represent Highshift Media excellence. Always be ready to help with AI automation, chatbots, or content strategy.',
+                    systemInstruction: {
+                        parts: [{ text: 'You are Highshift AI, a professional consulting agent. Speak clearly, be brief, and represent Highshift Media excellence. Always be ready to help with AI automation, chatbots, or content strategy.' }]
+                    },
                 },
                 callbacks: {
                     onopen: async () => {

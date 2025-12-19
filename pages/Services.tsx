@@ -7,7 +7,7 @@ import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { ROICalculator } from '../components/tools/ROICalculator';
-import { SERVICES } from '../constants';
+import { SERVICES, INDUSTRY_AGENTS } from '../constants';
 import {
   ArrowRight, Bot, Megaphone, MessageSquare, Globe, Settings,
   FileText, Box, Briefcase, Mic, ChevronRight, Check, Sparkles
@@ -18,13 +18,13 @@ const serviceRoutes: Record<string, string> = {
   industry_agents: '/agents',
   marketing_hub: '/marketing',
   whatsapp_bot: '/demos/whatsapp',
-  chatbot: '/services/chatbot',
+  chatbot: '/contact',
   voice_agent: '/demos/voice',
   business_plan: '/demos/business-plan',
-  website_creation: '/services/website',
+  website_creation: '/marketing',
   content: '/marketing',
-  automation: '/services/automation',
-  model: '/services/custom-model',
+  automation: '/contact',
+  model: '/contact',
 };
 
 // Service categories

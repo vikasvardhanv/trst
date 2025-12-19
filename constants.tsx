@@ -137,7 +137,7 @@ export const SERVICES: Service[] = [
     name: 'Highshift Website Design',
     description: 'Transform your brand with a high-performance, AI-optimized website built for the modern era.',
     icon: <WebsiteIcon />,
-    category: 'other',
+    category: 'marketing',
   },
   {
     id: 'content',
@@ -165,7 +165,7 @@ export const SERVICES: Service[] = [
     name: 'AI Business Plan Generator',
     description: 'Answer a few questions to generate a comprehensive business plan, including market and competitor analysis.',
     icon: <BusinessIcon />,
-    category: 'other',
+    category: 'automation',
   },
   {
     id: 'voice_agent',

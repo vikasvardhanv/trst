@@ -97,7 +97,7 @@ export async function generateSummary(serviceId: string, serviceName: string, an
 
   try {
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash-exp',
         contents: promptContent,
         config: {
             systemInstruction: "You are a helpful AI assistant for Highshift Media, an AI consulting agency. Your task is to summarize a potential client's project requirements based on their answers to a questionnaire.",

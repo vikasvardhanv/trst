@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { Layout } from '../components/layout/Layout';
 import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
@@ -107,6 +108,58 @@ const CASE_STUDIES: CaseStudy[] = [
     image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=800&auto=format&fit=crop',
     tags: ['Booking', 'Retail', 'Personalization']
   },
+  {
+    id: 'hotel-concierge',
+    title: 'Smart Hotel Concierge',
+    client: 'Grand Horizon Hotels',
+    industry: 'Hospitality',
+    description: 'Automated guest requests for room service, housekeeping, and local recommendations via WhatsApp.',
+    metrics: [
+      { label: 'Guest Satisfaction', value: '4.9/5', trend: 'up' },
+      { label: 'Service Response', value: '< 2m', trend: 'down' },
+      { label: 'Room Service Rev', value: '+18%', trend: 'up' },
+    ],
+    before: [
+      'Front desk overwhelmed at peak hours',
+      'Long wait times for simple requests',
+      'Missed upsell opportunities',
+      'Language barriers with international guests'
+    ],
+    after: [
+      'Instant AI responses in 50+ languages',
+      'Automated dispatch to housekeeping',
+      'Smart upsells for dining & spa',
+      'Zero hold times for guests'
+    ],
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop',
+    tags: ['Hospitality', 'Concierge', 'Multi-lingual']
+  },
+  {
+    id: 'real-estate-virtual-tours',
+    title: '24/7 Property Virtual Tours',
+    client: 'Summit Realty Group',
+    industry: 'Real Estate',
+    description: 'AI agent qualifies buyers and schedules in-person viewings after guiding them through virtual tours.',
+    metrics: [
+      { label: 'Qualified Leads', value: '+45%', trend: 'up' },
+      { label: 'Viewing Show Rate', value: '92%', trend: 'up' },
+      { label: 'Agent Time Saved', value: '20h/wk', trend: 'up' },
+    ],
+    before: [
+      'Agents wasting time on unqualified leads',
+      'No-shows for property viewings',
+      'Manual follow-up emails ignored',
+      'Limited viewing hours'
+    ],
+    after: [
+      'AI pre-qualifies budget & timeline',
+      'Automated reminders reduce no-shows',
+      'Instant answers to property FAQs',
+      '24/7 virtual tour guidance'
+    ],
+    image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=800&auto=format&fit=crop',
+    tags: ['Real Estate', 'Lead Qual', 'Virtual Tours']
+  },
 ];
 
 const INDUSTRIES = ['All', 'Healthcare', 'Automotive', 'Retail', 'Hospitality', 'Real Estate'];
@@ -114,6 +167,19 @@ const INDUSTRIES = ['All', 'Healthcare', 'Automotive', 'Retail', 'Hospitality', 
 export const CaseStudies: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [toggledCards, setToggledCards] = useState<Record<string, boolean>>({});
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.replace('#', '');
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        // Optionally open the "After" view to show it's active
+        setToggledCards(prev => ({ ...prev, [id]: true }));
+      }
+    }
+  }, [location]);
 
   const filteredCases = activeFilter === 'All' 
     ? CASE_STUDIES 
@@ -269,7 +335,15 @@ export const CaseStudies: React.FC = () => {
                           </span>
                         ))}
                       </div>
-                      <Button variant="ghost" size="sm" className="text-sky-400 hover:text-sky-300 p-0">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-sky-400 hover:text-sky-300 p-0"
+                        onClick={() => {
+                          window.location.hash = study.id;
+                          setToggledCards(prev => ({ ...prev, [study.id]: !prev[study.id] }));
+                        }}
+                      >
                         Read Full Story <ChevronRight className="h-4 w-4 ml-1" />
                       </Button>
                     </div>
