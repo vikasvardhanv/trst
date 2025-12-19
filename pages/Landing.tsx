@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Layout } from '../components/layout/Layout';
+import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
@@ -9,7 +10,7 @@ import { GradientText } from '../components/ui/FloatingElements';
 import { BrandLogo, INDUSTRY_AGENTS } from '../constants';
 import {
   ArrowRight, Sparkles, Zap, Shield, BarChart3, MessageSquare,
-  Bot, Megaphone, Play, ChevronRight, Check, Star
+  Bot, Megaphone, Play, ChevronRight, Check, Star, Cpu, Workflow, Layers, HelpCircle
 } from 'lucide-react';
 
 // Hero section features
@@ -74,9 +75,63 @@ const testimonials = [
   },
 ];
 
+// Process Steps
+const processSteps = [
+  {
+    icon: <MessageSquare className="h-6 w-6" />,
+    title: "Discovery",
+    description: "We analyze your workflows to identify high-impact automation opportunities."
+  },
+  {
+    icon: <Workflow className="h-6 w-6" />,
+    title: "Strategy",
+    description: "We design a custom AI roadmap tailored to your specific business goals."
+  },
+  {
+    icon: <Cpu className="h-6 w-6" />,
+    title: "Development",
+    description: "Our engineers build, train, and integrate your custom AI agents."
+  },
+  {
+    icon: <BarChart3 className="h-6 w-6" />,
+    title: "Optimization",
+    description: "Continuous monitoring and refinement to ensure maximum ROI."
+  }
+];
+
+// Tech Stack
+const techStack = [
+  "OpenAI", "Anthropic", "Google Gemini", "Meta Llama", "LangChain", "Pinecone", "React", "Python"
+];
+
+// FAQ
+const faqs = [
+  {
+    question: "How long does it take to build an AI agent?",
+    answer: "Simple agents can be deployed in 1-2 weeks. Complex, custom enterprise solutions typically take 4-8 weeks depending on integration requirements."
+  },
+  {
+    question: "Is my business data secure?",
+    answer: "Absolutely. We prioritize enterprise-grade security. We use private instances, encryption, and strict data governance policies to ensure your data never trains public models."
+  },
+  {
+    question: "Do I need technical knowledge to manage the AI?",
+    answer: "No. We build user-friendly dashboards and provide full training. Our support team is also available to handle any technical maintenance."
+  },
+  {
+    question: "What is the cost structure?",
+    answer: "We offer flexible engagement models including project-based pricing for development and monthly retainers for ongoing support and optimization."
+  }
+];
+
 export const Landing: React.FC = () => {
   return (
     <Layout>
+      <SEO 
+        title="Highshift Media | #1 AI Automation Agency"
+        description="Transform your business with the top AI agency. We build custom AI agents, chatbots, and automation workflows for clinics, dealerships, and enterprises."
+        keywords="AI Agency, AI Automation, Custom Chatbots, Business AI, Highshift Media, Generative AI Services"
+      />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-20 pb-32 px-4 overflow-hidden">
         <div className="max-w-7xl mx-auto text-center">
@@ -225,6 +280,39 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* Process Section */}
+      <section className="py-32 px-4 bg-white/[0.02]">
+        <div className="max-w-7xl mx-auto">
+          <AnimatedSection className="text-center mb-16">
+            <span className="text-sky-400 text-sm font-semibold uppercase tracking-wider mb-4 block">
+              How We Work
+            </span>
+            <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
+              Your Path to AI Transformation
+            </h2>
+          </AnimatedSection>
+
+          <StaggerContainer className="grid md:grid-cols-4 gap-8">
+            {processSteps.map((step, index) => (
+              <StaggerItem key={index}>
+                <div className="relative">
+                  {index < processSteps.length - 1 && (
+                    <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gradient-to-r from-sky-500/50 to-transparent -z-10" />
+                  )}
+                  <GlassCard className="p-6 h-full text-center relative bg-gray-900/50">
+                    <div className="w-12 h-12 mx-auto bg-sky-500/20 rounded-full flex items-center justify-center text-sky-400 mb-4">
+                      {step.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
+                    <p className="text-sm text-white/60">{step.description}</p>
+                  </GlassCard>
+                </div>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+        </div>
+      </section>
+
       {/* Industry Agents Preview */}
       <section className="py-32 px-4 bg-gradient-to-b from-transparent via-sky-950/20 to-transparent">
         <div className="max-w-7xl mx-auto">
@@ -265,6 +353,20 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* Tech Stack */}
+      <section className="py-20 px-4 border-y border-white/10">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-white/40 text-sm font-semibold uppercase tracking-wider mb-8">
+            Powered by World-Class Technology
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+            {techStack.map((tech, index) => (
+              <span key={index} className="text-xl md:text-2xl font-bold text-white">{tech}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
       <section className="py-32 px-4">
         <div className="max-w-7xl mx-auto">
@@ -298,34 +400,53 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="py-32 px-4 bg-white/[0.02]">
+        <div className="max-w-3xl mx-auto">
+          <AnimatedSection className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
+              Frequently Asked Questions
+            </h2>
+          </AnimatedSection>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <AnimatedSection key={index} delay={index * 0.1}>
+                <GlassCard className="p-6">
+                  <h3 className="text-lg font-bold text-white mb-2 flex items-start gap-3">
+                    <HelpCircle className="h-5 w-5 text-sky-400 shrink-0 mt-1" />
+                    {faq.question}
+                  </h3>
+                  <p className="text-white/60 ml-8">{faq.answer}</p>
+                </GlassCard>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-32 px-4">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection>
-            <GlassCard className="p-12 text-center relative overflow-hidden">
-              {/* Background glow */}
-              <div className="absolute inset-0 bg-gradient-to-r from-sky-500/10 via-purple-500/10 to-sky-500/10" />
-
-              <div className="relative z-10">
-                <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
-                  Ready to Transform Your Business?
-                </h2>
-                <p className="text-xl text-white/60 mb-8 max-w-2xl mx-auto">
-                  Get started with a free consultation. Our team will help you identify
-                  the perfect AI solution for your needs.
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link to="/contact">
-                    <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
-                      Schedule Consultation
-                    </Button>
-                  </Link>
-                  <Link to="/demos">
-                    <Button variant="ghost" size="lg" icon={<Play className="h-5 w-5" />}>
-                      Try Live Demos
-                    </Button>
-                  </Link>
-                </div>
+            <GlassCard className="p-12 text-center">
+              <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
+                Ready to Get Started?
+              </h2>
+              <p className="text-xl text-white/60 mb-8 max-w-2xl mx-auto">
+                Let's discuss how AI can transform your business.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="https://calendly.com/highshift-media/30min" target="_blank" rel="noopener noreferrer">
+                  <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
+                    Schedule Consultation
+                  </Button>
+                </a>
+                <Link to="/demos">
+                  <Button variant="ghost" size="lg" icon={<Play className="h-5 w-5" />}>
+                    Try Live Demos
+                  </Button>
+                </Link>
               </div>
             </GlassCard>
           </AnimatedSection>

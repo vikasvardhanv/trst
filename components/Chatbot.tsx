@@ -148,11 +148,6 @@ A Potential Client`;
                  <a 
                     href={mailtoUrl} 
                     onClick={(e) => {
-                        // Optional: Prevent default if you want to force the Calendly flow first, 
-                        // but usually mailto is fine to open in background.
-                        // e.preventDefault(); 
-                        // window.open(mailtoUrl, '_blank');
-                        
                         // After a short delay, redirect to Calendly
                         setTimeout(() => {
                             window.open('https://calendly.com/highshift-media/30min', '_blank');

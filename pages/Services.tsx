@@ -1,7 +1,8 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Layout } from '../components/layout/Layout';
+import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
@@ -20,7 +21,7 @@ const serviceRoutes: Record<string, string> = {
   voice_agent: '/demos/voice',
   business_plan: '/demos/business-plan',
   website_creation: '/services/website',
-  content: '/services/content',
+  content: '/marketing',
   automation: '/services/automation',
   model: '/services/custom-model',
 };
@@ -43,6 +44,7 @@ const benefits = [
 ];
 
 export const Services: React.FC = () => {
+  const { serviceId } = useParams();
   const [activeCategory, setActiveCategory] = React.useState('all');
 
   const filteredServices = SERVICES.filter(service => {
@@ -50,8 +52,29 @@ export const Services: React.FC = () => {
     return service.category === activeCategory;
   }).filter(service => service.id !== 'snake' && service.id !== 'external_website');
 
+  useEffect(() => {
+    if (serviceId) {
+      const element = document.getElementById(serviceId);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Highlight effect
+          element.classList.add('ring-2', 'ring-sky-500', 'ring-offset-4', 'ring-offset-black');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-sky-500', 'ring-offset-4', 'ring-offset-black');
+          }, 2000);
+        }, 500);
+      }
+    }
+  }, [serviceId, filteredServices]);
+
   return (
     <Layout>
+      <SEO 
+        title="AI Services & Solutions | Highshift Media"
+        description="Explore our comprehensive AI services: Custom Chatbots, Marketing Automation, Voice Agents, and Industry-Specific AI Solutions."
+        keywords="AI Services, Chatbot Development, Marketing Automation, Voice AI, Business Automation"
+      />
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
@@ -106,23 +129,25 @@ export const Services: React.FC = () => {
           <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredServices.map((service) => (
               <StaggerItem key={service.id}>
-                <Link to={serviceRoutes[service.id] || `/services/${service.id}`}>
-                  <GlassCard className="p-8 h-full group">
-                    <div className="text-sky-400 mb-6 group-hover:text-sky-300 transition-colors">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-sky-200 transition-colors">
-                      {service.name}
-                    </h3>
-                    <p className="text-white/60 mb-6 leading-relaxed group-hover:text-white/70 transition-colors">
-                      {service.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-sky-400 font-medium">
-                      Learn more
-                      <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </GlassCard>
-                </Link>
+                <div id={service.id} className="h-full transition-all duration-500 rounded-[2.5rem]">
+                  <Link to={serviceRoutes[service.id] || `/services/${service.id}`}>
+                    <GlassCard className="p-8 h-full group">
+                      <div className="text-sky-400 mb-6 group-hover:text-sky-300 transition-colors">
+                        {service.icon}
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-sky-200 transition-colors">
+                        {service.name}
+                      </h3>
+                      <p className="text-white/60 mb-6 leading-relaxed group-hover:text-white/70 transition-colors">
+                        {service.description}
+                      </p>
+                      <div className="flex items-center gap-2 text-sky-400 font-medium">
+                        Learn more
+                        <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </GlassCard>
+                  </Link>
+                </div>
               </StaggerItem>
             ))}
           </StaggerContainer>

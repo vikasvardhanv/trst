@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Layout } from '../components/layout/Layout';
+import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
@@ -49,6 +50,11 @@ export const Agents: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Industry AI Agents | Highshift Media"
+        description="Specialized AI agents for Restaurants, Clinics, Salons, Dealerships, and Construction. Automate your industry-specific workflows today."
+        keywords="Restaurant AI, Clinic Chatbot, Salon Booking AI, Dealership AI, Construction Automation"
+      />
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
@@ -204,23 +210,20 @@ export const Agents: React.FC = () => {
       <section className="py-32 px-4">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection>
-            <GlassCard className="p-12 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-sky-500/10 to-purple-500/10" />
-              <div className="relative z-10">
-                <Sparkles className="h-12 w-12 text-sky-400 mx-auto mb-6" />
-                <h2 className="text-4xl font-black text-white mb-4">
-                  Need a Custom Agent?
-                </h2>
-                <p className="text-xl text-white/60 mb-8 max-w-xl mx-auto">
-                  Don't see your industry? We build custom AI agents tailored to your specific
-                  business requirements.
-                </p>
-                <Link to="/contact">
-                  <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
-                    Discuss Custom Solution
-                  </Button>
-                </Link>
-              </div>
+            <GlassCard className="p-12 text-center">
+              <Sparkles className="h-12 w-12 text-sky-400 mx-auto mb-6" />
+              <h2 className="text-4xl font-black text-white mb-4">
+                Need a Custom Agent?
+              </h2>
+              <p className="text-xl text-white/60 mb-8 max-w-xl mx-auto">
+                Don't see your industry? We build custom AI agents tailored to your specific
+                business requirements.
+              </p>
+              <Link to="/contact">
+                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
+                  Discuss Custom Solution
+                </Button>
+              </Link>
             </GlassCard>
           </AnimatedSection>
         </div>
