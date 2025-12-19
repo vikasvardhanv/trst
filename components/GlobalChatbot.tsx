@@ -55,18 +55,26 @@ export const GlobalChatbot: React.FC = () => {
         throw new Error("API Key missing");
       }
 
-      const genAI = new GoogleGenAI({ apiKey });
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const client = new GoogleGenAI({ apiKey });
 
-      const chat = model.startChat({
-        history: messages.map(m => ({
-          role: m.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: m.text }],
-        })),
-        generationConfig: {
-          maxOutputTokens: 500,
-        },
-        systemInstruction: {
+      // Construct history for the new SDK
+      // The new SDK expects 'user' and 'model' roles.
+      const contents = messages.map(m => ({
+        role: m.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }],
+      }));
+
+      // Add the new user message
+      contents.push({
+        role: 'user',
+        parts: [{ text: userMessage.text }]
+      });
+
+      const response = await client.models.generateContent({
+        model: "gemini-2.0-flash-exp",
+        contents: contents,
+        config: {
+          systemInstruction: {
             parts: [{ text: `You are the Highshift Media AI Consultant. Your goal is to help potential clients by understanding their needs and gathering requirements for their AI or software projects.
 
             Your capabilities:
@@ -78,16 +86,15 @@ export const GlobalChatbot: React.FC = () => {
             Tone: Professional, helpful, modern, and concise.
             Do not make up technical details you don't know.
             Always try to move the conversation towards gathering requirements or booking a consultation.` }]
+          }
         }
       });
 
-      const result = await chat.sendMessage(userMessage.text);
-      const response = await result.response;
       const text = response.text();
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: text,
+        text: text || "I'm sorry, I didn't catch that.",
         sender: 'bot',
         timestamp: new Date(),
       };
