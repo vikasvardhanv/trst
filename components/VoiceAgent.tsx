@@ -121,14 +121,18 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
             inputAudioContextRef.current = inputCtx;
             outputAudioContextRef.current = outputCtx;
 
-            // Use v1beta for better stability
+            // Use v1alpha for experimental models (required for gemini-2.0-flash-exp Live API)
+            // Explicitly set baseUrl to prevent double-slash issues in WebSocket URL
             const ai = new GoogleGenAI({ 
                 apiKey: apiKey, 
-                apiVersion: 'v1beta'
+                apiVersion: 'v1alpha',
+                httpOptions: {
+                    baseUrl: 'https://generativelanguage.googleapis.com'
+                }
             });
             
             const sessionPromise = ai.live.connect({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-2.0-flash-exp',
                 config: {
                     responseModalities: [Modality.AUDIO],
                     speechConfig: {
