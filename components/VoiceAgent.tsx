@@ -125,7 +125,7 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
             const ai = new GoogleGenAI({ apiKey: apiKey, apiVersion: 'v1alpha' });
             
             const sessionPromise = ai.live.connect({
-                model: 'gemini-2.0-flash-exp',
+                model: 'gemini-2.5-flash',
                 config: {
                     responseModalities: [Modality.AUDIO],
                     inputAudioTranscription: {},

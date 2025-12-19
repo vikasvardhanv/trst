@@ -55,11 +55,18 @@ export const GlobalChatbot: React.FC = () => {
         throw new Error("API Key missing");
       }
 
-      const client = new GoogleGenAI({ apiKey });
+      // Use v1alpha for the experimental model
+      const client = new GoogleGenAI({ apiKey, apiVersion: 'v1alpha' });
 
       // Construct history for the new SDK
       // The new SDK expects 'user' and 'model' roles.
-      const contents = messages.map(m => ({
+      // Filter out the initial hardcoded bot message if it's the first one to ensure conversation starts with user
+      const historyMessages = messages.filter((m, index) => {
+          if (index === 0 && m.sender === 'bot') return false;
+          return true;
+      });
+
+      const contents = historyMessages.map(m => ({
         role: m.sender === 'user' ? 'user' : 'model',
         parts: [{ text: m.text }],
       }));
@@ -71,7 +78,7 @@ export const GlobalChatbot: React.FC = () => {
       });
 
       const response = await client.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         contents: contents,
         config: {
           systemInstruction: {
@@ -100,11 +107,11 @@ export const GlobalChatbot: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat error:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm having trouble connecting to the server right now. Please try again later or contact us directly at info@highshiftmedia.com.",
+        text: `I'm having trouble connecting to the server right now. (Error: ${error.message || 'Unknown'}). Please try again later or contact us directly at info@highshiftmedia.com.`,
         sender: 'bot',
         timestamp: new Date(),
       };
