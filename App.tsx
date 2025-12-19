@@ -10,6 +10,8 @@ import {
   Marketing,
   Demos,
   Contact,
+  CaseStudies,
+  ClientLogin,
   RestaurantDemo,
   ClinicDemo,
   SalonDemo,
@@ -18,6 +20,11 @@ import {
   WhatsAppDemo,
   VoiceDemo,
   BusinessPlanDemo,
+  RealEstateDemo,
+  LegalDemo,
+  EcommerceDemo,
+  EducationDemo,
+  RecruitmentDemo,
 } from './pages';
 
 // Legacy components for backward compatibility
@@ -51,8 +58,8 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/services/:serviceId" element={<PageTransition><Services /></PageTransition>} />
         <Route path="/agents" element={<PageTransition><Agents /></PageTransition>} />
         <Route path="/agents/:agentId" element={<PageTransition><Agents /></PageTransition>} />
-        <Route path="/marketing" element={<PageTransition><Marketing /></PageTransition>} />
-        <Route path="/demos" element={<PageTransition><Demos /></PageTransition>} />
+        <Route path="/marketing" element={<PageTransition><Marketing /></PageTransition>} />        <Route path="/case-studies" element={<PageTransition><CaseStudies /></PageTransition>} />
+        <Route path="/login" element={<PageTransition><ClientLogin /></PageTransition>} />        <Route path="/demos" element={<PageTransition><Demos /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
 
         {/* Demo routes */}
@@ -64,6 +71,11 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/demos/whatsapp" element={<PageTransition><WhatsAppDemo /></PageTransition>} />
         <Route path="/demos/voice" element={<PageTransition><VoiceDemo /></PageTransition>} />
         <Route path="/demos/business-plan" element={<PageTransition><BusinessPlanDemo /></PageTransition>} />
+        <Route path="/demos/real_estate" element={<PageTransition><RealEstateDemo /></PageTransition>} />
+        <Route path="/demos/legal" element={<PageTransition><LegalDemo /></PageTransition>} />
+        <Route path="/demos/ecommerce" element={<PageTransition><EcommerceDemo /></PageTransition>} />
+        <Route path="/demos/education" element={<PageTransition><EducationDemo /></PageTransition>} />
+        <Route path="/demos/recruitment" element={<PageTransition><RecruitmentDemo /></PageTransition>} />
 
         {/* Fun extras */}
         <Route

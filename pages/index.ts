@@ -4,6 +4,8 @@ export { Agents } from './Agents';
 export { Marketing } from './Marketing';
 export { Demos, DemoWrapper } from './Demos';
 export { Contact } from './Contact';
+export { CaseStudies } from './CaseStudies';
+export { ClientLogin } from './ClientLogin';
 
 // Demo pages
 export { RestaurantDemo } from './demos/RestaurantDemo';
@@ -14,3 +16,8 @@ export { ConstructionDemo } from './demos/ConstructionDemo';
 export { WhatsAppDemo } from './demos/WhatsAppDemo';
 export { VoiceDemo } from './demos/VoiceDemo';
 export { BusinessPlanDemo } from './demos/BusinessPlanDemo';
+export { RealEstateDemo } from './demos/RealEstateDemo';
+export { LegalDemo } from './demos/LegalDemo';
+export { EcommerceDemo } from './demos/EcommerceDemo';
+export { EducationDemo } from './demos/EducationDemo';
+export { RecruitmentDemo } from './demos/RecruitmentDemo';

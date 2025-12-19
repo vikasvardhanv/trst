@@ -8,6 +8,7 @@ const navItems = [
   { name: 'Home', path: '/' },
   { name: 'Services', path: '/services' },
   { name: 'AI Agents', path: '/agents' },
+  { name: 'Case Studies', path: '/case-studies' },
   { name: 'Marketing', path: '/marketing' },
   { name: 'Demos', path: '/demos' },
 ];
@@ -78,6 +79,12 @@ export const Navbar: React.FC = () => {
 
             {/* CTA Button */}
             <div className="hidden md:flex items-center gap-4">
+              <Link
+                to="/login"
+                className="text-sm font-medium text-white/70 hover:text-white transition-colors"
+              >
+                Client Login
+              </Link>
               <Link
                 to="/contact"
                 className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl hover:from-sky-400 hover:to-blue-500 transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40"

@@ -6,6 +6,7 @@ import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
+import { ROICalculator } from '../components/tools/ROICalculator';
 import { SERVICES } from '../constants';
 import {
   ArrowRight, Bot, Megaphone, MessageSquare, Globe, Settings,
@@ -180,6 +181,13 @@ export const Services: React.FC = () => {
             ))}
           </StaggerContainer>
         </div>
+      </section>
+
+      {/* ROI Calculator Section */}
+      <section className="py-20 px-4 bg-white/[0.02] border-y border-white/5">
+        <AnimatedSection>
+          <ROICalculator />
+        </AnimatedSection>
       </section>
 
       {/* Process Section */}

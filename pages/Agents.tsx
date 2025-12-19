@@ -43,6 +43,31 @@ const agentDetails: Record<string, {
     useCases: ['Project updates', 'Safety checklists', 'Equipment tracking', 'Daily reports'],
     integrations: ['Project Management', 'Time Tracking', 'Safety Systems'],
   },
+  real_estate: {
+    benefits: ['Qualify leads instantly', '24/7 property inquiries', 'Automated viewing scheduling'],
+    useCases: ['Property search', 'Mortgage estimation', 'Neighborhood info', 'Agent handoff'],
+    integrations: ['MLS Feeds', 'CRM Systems', 'Calendar Apps'],
+  },
+  legal: {
+    benefits: ['Filter unqualified leads', 'Automate intake forms', 'Reduce non-billable hours'],
+    useCases: ['Case evaluation', 'Legal FAQs', 'Consultation booking', 'Document collection'],
+    integrations: ['Practice Management', 'Document Systems', 'Calendar Apps'],
+  },
+  ecommerce: {
+    benefits: ['Reduce support tickets by 70%', 'Increase conversion rates', 'Instant order status'],
+    useCases: ['Order tracking', 'Product recommendations', 'Return processing', 'Gift finding'],
+    integrations: ['Shopify/WooCommerce', 'Helpdesk Software', 'Inventory Systems'],
+  },
+  education: {
+    benefits: ['Boost enrollment rates', '24/7 student support', 'Streamline admissions'],
+    useCases: ['Course selection', 'Application help', 'Campus FAQs', 'Tuition info'],
+    integrations: ['Student Information Systems', 'LMS', 'CRM'],
+  },
+  recruitment: {
+    benefits: ['Screen candidates faster', 'Automate interview scheduling', 'Improve candidate experience'],
+    useCases: ['Resume screening', 'Job description Q&A', 'Interview coordination', 'Onboarding'],
+    integrations: ['ATS Systems', 'HRIS', 'Calendar Apps'],
+  },
 };
 
 export const Agents: React.FC = () => {

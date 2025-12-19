@@ -3,12 +3,12 @@ import React from 'react';
 import type { Service, Question } from './types';
 import { IndustryAgentsIcon } from './components/icons/IndustryAgentsIcon';
 import { MarketingHubIcon } from './components/icons/MarketingHubIcon';
-import { ClinicIcon, ConstructionIcon, DealershipIcon, RestaurantIcon, SalonIcon } from './components/icons/AgentIcons';
+import { ClinicIcon, ConstructionIcon, DealershipIcon, RestaurantIcon, SalonIcon, RealEstateIcon, LegalIcon, EcommerceIcon, EducationIcon, RecruitmentIcon } from './components/icons/AgentIcons';
 import { EmailIcon, SocialMediaIcon } from './components/icons/MarketingIcons';
 import type { IndustryAgent } from './types';
 import { MessageSquare, FileText, Settings, Globe, Box, Gamepad2, Briefcase, Mic } from 'lucide-react';
 
-export { IndustryAgentsIcon, MarketingHubIcon, ClinicIcon, ConstructionIcon, DealershipIcon, RestaurantIcon, SalonIcon, EmailIcon, SocialMediaIcon };
+export { IndustryAgentsIcon, MarketingHubIcon, ClinicIcon, ConstructionIcon, DealershipIcon, RestaurantIcon, SalonIcon, RealEstateIcon, LegalIcon, EcommerceIcon, EducationIcon, RecruitmentIcon, EmailIcon, SocialMediaIcon };
 
 
 export const BrandLogo = ({ className = "h-32 w-32" }: { className?: string }) => (
@@ -369,6 +369,51 @@ export const INDUSTRY_AGENTS: IndustryAgent[] = [
     description: 'Appointment booking, stylist selection, and service consultations.',
     icon: <SalonIcon className="w-8 h-8 text-purple-400" />,
     features: ['Appointment Booking', 'Stylist Selection', 'Service Menu', 'Reminders'],
+    demoAvailable: true
+  },
+  {
+    id: 'real_estate',
+    name: 'Real Estate Agent',
+    industry: 'Real Estate',
+    description: 'Lead qualification, property viewings, and listing inquiries.',
+    icon: <RealEstateIcon className="w-8 h-8 text-indigo-400" />,
+    features: ['Lead Qualification', 'Schedule Viewings', 'Property Search', 'Mortgage Calc'],
+    demoAvailable: true
+  },
+  {
+    id: 'legal',
+    name: 'Legal Intake Agent',
+    industry: 'Legal',
+    description: 'Client intake, case screening, and consultation scheduling.',
+    icon: <LegalIcon className="w-8 h-8 text-slate-400" />,
+    features: ['Case Screening', 'Client Intake', 'FAQ Automation', 'Consultation Booking'],
+    demoAvailable: true
+  },
+  {
+    id: 'ecommerce',
+    name: 'E-commerce Support',
+    industry: 'Retail',
+    description: 'Order tracking, product recommendations, and returns processing.',
+    icon: <EcommerceIcon className="w-8 h-8 text-pink-400" />,
+    features: ['Order Tracking', 'Product Recommender', 'Returns & Refunds', '24/7 Support'],
+    demoAvailable: true
+  },
+  {
+    id: 'education',
+    name: 'Education Agent',
+    industry: 'Education',
+    description: 'Student enrollment, course inquiries, and campus support.',
+    icon: <EducationIcon className="w-8 h-8 text-yellow-400" />,
+    features: ['Course Info', 'Enrollment Help', 'Student Support', 'Campus Guide'],
+    demoAvailable: true
+  },
+  {
+    id: 'recruitment',
+    name: 'Recruitment Agent',
+    industry: 'HR & Staffing',
+    description: 'Candidate screening, interview scheduling, and job FAQs.',
+    icon: <RecruitmentIcon className="w-8 h-8 text-cyan-400" />,
+    features: ['Resume Screening', 'Interview Scheduling', 'Job FAQs', 'Application Status'],
     demoAvailable: true
   }
 ];
