@@ -437,11 +437,9 @@ export const Landing: React.FC = () => {
                 Let's discuss how AI can transform your business.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="https://calendly.com/highshift-media/30min" target="_blank" rel="noopener noreferrer">
-                  <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
-                    Schedule Consultation
-                  </Button>
-                </a>
+                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />} onClick={() => window.Calendly?.showPopupWidget('https://calendly.com/tech-highshiftmedia/30min')}>
+                  Schedule Consultation
+                </Button>
                 <Link to="/demos">
                   <Button variant="ghost" size="lg" icon={<Play className="h-5 w-5" />}>
                     Try Live Demos
