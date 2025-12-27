@@ -9,6 +9,14 @@ export interface Service {
   icon: React.ReactNode;
   externalUrl?: string;
   category?: ServiceCategory;
+  highlight?: string;
+  // Detailed fields for service modal
+  longDescription?: string;
+  benefits?: string[];
+  features?: string[];
+  useCases?: string[];
+  integrations?: string[];
+  demoId?: string; // Links to demo if available
 }
 
 export interface ChatMessage {
@@ -29,7 +37,7 @@ export interface Question {
   options: string[];
 }
 
-export type ServiceCategory = 'industry' | 'marketing' | 'automation' | 'communication' | 'other';
+export type ServiceCategory = 'agents' | 'industry' | 'marketing' | 'automation' | 'consulting' | 'communication' | 'other';
 
 // Industry Agent Types
 export interface IndustryAgent {

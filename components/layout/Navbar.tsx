@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut } from 'lucide-react';
 import { BrandLogo } from '../../constants';
+import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { name: 'Home', path: '/' },
@@ -16,7 +17,9 @@ const navItems = [
 export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, user, logout, setShowAuthModal, setAuthModalMode } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,18 +82,73 @@ export const Navbar: React.FC = () => {
 
             {/* CTA Button */}
             <div className="hidden md:flex items-center gap-4">
-              <Link
-                to="/login"
-                className="text-sm font-medium text-white/70 hover:text-white transition-colors"
-              >
-                Client Login
-              </Link>
-              <Link
-                to="/contact"
+              {isAuthenticated ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center">
+                      <User className="h-4 w-4 text-sky-400" />
+                    </div>
+                    <span className="text-sm font-medium text-white/80">
+                      {user?.fullName?.split(' ')[0] || 'Account'}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-white/60 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* User dropdown menu */}
+                  <AnimatePresence>
+                    {showUserMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute right-0 mt-2 w-48 py-2 bg-gray-900/95 border border-white/10 rounded-xl shadow-xl backdrop-blur-sm"
+                      >
+                        <div className="px-4 py-2 border-b border-white/10">
+                          <p className="text-sm font-medium text-white truncate">{user?.fullName}</p>
+                          <p className="text-xs text-white/50 truncate">{user?.email}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setShowUserMenu(false);
+                          }}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Sign Out
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setAuthModalMode('login');
+                    setShowAuthModal(true);
+                  }}
+                  className="text-sm font-medium text-white/70 hover:text-white transition-colors"
+                >
+                  Sign In
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (isAuthenticated) {
+                    // Go to contact page if already logged in
+                    window.location.href = '/contact';
+                  } else {
+                    setAuthModalMode('signup');
+                    setShowAuthModal(true);
+                  }
+                }}
                 className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl hover:from-sky-400 hover:to-blue-500 transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40"
               >
                 Get Started
-              </Link>
+              </button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -140,14 +198,49 @@ export const Navbar: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: navItems.length * 0.1 }}
-                  className="mt-4"
+                  className="mt-4 space-y-3"
                 >
-                  <Link
-                    to="/contact"
-                    className="block w-full px-4 py-3 text-center text-lg font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl"
-                  >
-                    Get Started
-                  </Link>
+                  {isAuthenticated ? (
+                    <>
+                      <div className="px-4 py-3 bg-white/5 rounded-xl">
+                        <p className="text-sm font-medium text-white">{user?.fullName}</p>
+                        <p className="text-xs text-white/50">{user?.email}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 text-lg font-medium text-white/70 hover:text-white border border-white/10 rounded-xl"
+                      >
+                        <LogOut className="h-5 w-5" />
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setAuthModalMode('login');
+                          setShowAuthModal(true);
+                        }}
+                        className="w-full px-4 py-3 text-center text-lg font-medium text-white/70 hover:text-white border border-white/10 rounded-xl"
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          setAuthModalMode('signup');
+                          setShowAuthModal(true);
+                        }}
+                        className="block w-full px-4 py-3 text-center text-lg font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl"
+                      >
+                        Get Started
+                      </button>
+                    </>
+                  )}
                 </motion.div>
               </div>
             </div>

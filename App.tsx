@@ -1,6 +1,9 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { AuthProvider } from './context/AuthContext';
+import { AuthModal } from './components/auth/AuthModal';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Lazy load all pages for faster initial load
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
@@ -10,7 +13,6 @@ const Marketing = lazy(() => import('./pages/Marketing').then(m => ({ default: m
 const Demos = lazy(() => import('./pages/Demos').then(m => ({ default: m.Demos })));
 const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const CaseStudies = lazy(() => import('./pages/CaseStudies').then(m => ({ default: m.CaseStudies })));
-const ClientLogin = lazy(() => import('./pages/ClientLogin').then(m => ({ default: m.ClientLogin })));
 
 // Demo pages - lazy loaded
 const RestaurantDemo = lazy(() => import('./pages/demos/RestaurantDemo').then(m => ({ default: m.RestaurantDemo })));
@@ -92,31 +94,32 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/services/:serviceId" element={<PageTransition><Services /></PageTransition>} />
         <Route path="/agents" element={<PageTransition><Agents /></PageTransition>} />
         <Route path="/agents/:agentId" element={<PageTransition><Agents /></PageTransition>} />
-        <Route path="/marketing" element={<PageTransition><Marketing /></PageTransition>} />        <Route path="/case-studies" element={<PageTransition><CaseStudies /></PageTransition>} />
-        <Route path="/login" element={<PageTransition><ClientLogin /></PageTransition>} />        <Route path="/demos" element={<PageTransition><Demos /></PageTransition>} />
+        <Route path="/marketing" element={<PageTransition><Marketing /></PageTransition>} />
+        <Route path="/case-studies" element={<PageTransition><CaseStudies /></PageTransition>} />
+        <Route path="/demos" element={<PageTransition><Demos /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
 
-        {/* Demo routes */}
-        <Route path="/demos/restaurant" element={<PageTransition><RestaurantDemo /></PageTransition>} />
-        <Route path="/demos/clinic" element={<PageTransition><ClinicDemo /></PageTransition>} />
-        <Route path="/demos/salon" element={<PageTransition><SalonDemo /></PageTransition>} />
-        <Route path="/demos/dealership" element={<PageTransition><DealershipDemo /></PageTransition>} />
-        <Route path="/demos/construction" element={<PageTransition><ConstructionDemo /></PageTransition>} />
-        <Route path="/demos/whatsapp" element={<PageTransition><WhatsAppDemo /></PageTransition>} />
-        <Route path="/demos/voice" element={<PageTransition><VoiceDemo /></PageTransition>} />
-        <Route path="/demos/business-plan" element={<PageTransition><BusinessPlanDemo /></PageTransition>} />
-        <Route path="/demos/real_estate" element={<PageTransition><RealEstateDemo /></PageTransition>} />
-        <Route path="/demos/legal" element={<PageTransition><LegalDemo /></PageTransition>} />
-        <Route path="/demos/ecommerce" element={<PageTransition><EcommerceDemo /></PageTransition>} />
-        <Route path="/demos/education" element={<PageTransition><EducationDemo /></PageTransition>} />
-        <Route path="/demos/recruitment" element={<PageTransition><RecruitmentDemo /></PageTransition>} />
-        
-        {/* Advanced AI Service Demos */}
-        <Route path="/demos/workflow-automation" element={<PageTransition><WorkflowAutomationDemo /></PageTransition>} />
-        <Route path="/demos/data-analytics" element={<PageTransition><DataAnalyticsDemo /></PageTransition>} />
-        <Route path="/demos/content-generator" element={<PageTransition><ContentGeneratorDemo /></PageTransition>} />
-        <Route path="/demos/agent-orchestration" element={<PageTransition><AgentOrchestrationDemo /></PageTransition>} />
-        <Route path="/demos/custom-model" element={<PageTransition><CustomModelDemo /></PageTransition>} />
+        {/* Protected Demo routes - require login */}
+        <Route path="/demos/restaurant" element={<PageTransition><ProtectedRoute><RestaurantDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/clinic" element={<PageTransition><ProtectedRoute><ClinicDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/salon" element={<PageTransition><ProtectedRoute><SalonDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/dealership" element={<PageTransition><ProtectedRoute><DealershipDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/construction" element={<PageTransition><ProtectedRoute><ConstructionDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/whatsapp" element={<PageTransition><ProtectedRoute><WhatsAppDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/voice" element={<PageTransition><ProtectedRoute><VoiceDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/business-plan" element={<PageTransition><ProtectedRoute><BusinessPlanDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/real_estate" element={<PageTransition><ProtectedRoute><RealEstateDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/legal" element={<PageTransition><ProtectedRoute><LegalDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/ecommerce" element={<PageTransition><ProtectedRoute><EcommerceDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/education" element={<PageTransition><ProtectedRoute><EducationDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/recruitment" element={<PageTransition><ProtectedRoute><RecruitmentDemo /></ProtectedRoute></PageTransition>} />
+
+        {/* Advanced AI Service Demos - Protected */}
+        <Route path="/demos/workflow-automation" element={<PageTransition><ProtectedRoute><WorkflowAutomationDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/data-analytics" element={<PageTransition><ProtectedRoute><DataAnalyticsDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/content-generator" element={<PageTransition><ProtectedRoute><ContentGeneratorDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/agent-orchestration" element={<PageTransition><ProtectedRoute><AgentOrchestrationDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/custom-model" element={<PageTransition><ProtectedRoute><CustomModelDemo /></ProtectedRoute></PageTransition>} />
 
         {/* Fun extras */}
         <Route
@@ -152,12 +155,15 @@ const AnimatedRoutes: React.FC = () => {
 function App() {
   return (
     <Router>
-      <ScrollToTop />
-      <div className="w-full min-h-screen bg-gray-900 text-white">
-        <Suspense fallback={<LoadingSpinner />}>
-          <AnimatedRoutes />
-        </Suspense>
-      </div>
+      <AuthProvider>
+        <ScrollToTop />
+        <div className="w-full min-h-screen bg-gray-900 text-white">
+          <Suspense fallback={<LoadingSpinner />}>
+            <AnimatedRoutes />
+          </Suspense>
+        </div>
+        <AuthModal />
+      </AuthProvider>
     </Router>
   );
 }

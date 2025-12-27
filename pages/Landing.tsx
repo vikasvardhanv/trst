@@ -11,7 +11,7 @@ import { BrandLogo, INDUSTRY_AGENTS } from '../constants';
 import { openCalendlyWithEmail } from '../utils/calendly';
 import {
   ArrowRight, Sparkles, Zap, Shield, BarChart3, MessageSquare,
-  Bot, Megaphone, Play, ChevronRight, Check, Star, Cpu, Workflow, Layers, HelpCircle
+  Bot, Megaphone, Play, ChevronRight, Check, Cpu, Workflow, Layers
 } from 'lucide-react';
 
 // Hero section features
@@ -46,34 +46,7 @@ const serviceHighlights = [
   },
 ];
 
-// Stats
-const stats = [
-  { value: '500+', label: 'Projects Delivered' },
-  { value: '98%', label: 'Client Satisfaction' },
-  { value: '24/7', label: 'AI Availability' },
-];
 
-// Testimonials
-const testimonials = [
-  {
-    quote: "Highshift transformed our customer service. Our AI agent handles 80% of inquiries automatically.",
-    author: "Sarah Chen",
-    role: "CEO, TechFlow Inc",
-    rating: 5,
-  },
-  {
-    quote: "The marketing automation saved us 20+ hours per week. ROI was visible within the first month.",
-    author: "Michael Rodriguez",
-    role: "Marketing Director, GrowthLabs",
-    rating: 5,
-  },
-  {
-    quote: "Best AI agency we've worked with. They understand our business and deliver results.",
-    author: "Emily Watson",
-    role: "Founder, HealthPlus",
-    rating: 5,
-  },
-];
 
 // Process Steps
 const processSteps = [
@@ -104,25 +77,6 @@ const techStack = [
   "OpenAI", "Anthropic", "Google Gemini", "Meta Llama", "LangChain", "Pinecone", "React", "Python"
 ];
 
-// FAQ
-const faqs = [
-  {
-    question: "How long does it take to build an AI agent?",
-    answer: "Simple agents can be deployed in 1-2 weeks. Complex, custom enterprise solutions typically take 4-8 weeks depending on integration requirements."
-  },
-  {
-    question: "Is my business data secure?",
-    answer: "Absolutely. We prioritize enterprise-grade security. We use private instances, encryption, and strict data governance policies to ensure your data never trains public models."
-  },
-  {
-    question: "Do I need technical knowledge to manage the AI?",
-    answer: "No. We build user-friendly dashboards and provide full training. Our support team is also available to handle any technical maintenance."
-  },
-  {
-    question: "What is the cost structure?",
-    answer: "We offer flexible engagement models including project-based pricing for development and monthly retainers for ongoing support and optimization."
-  }
-];
 
 export const Landing: React.FC = () => {
   return (
@@ -227,20 +181,6 @@ export const Landing: React.FC = () => {
             />
           </div>
         </motion.div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 px-4 border-y border-white/10 bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto">
-          <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <StaggerItem key={index} className="text-center">
-                <div className="text-4xl sm:text-5xl font-black text-white mb-2">{stat.value}</div>
-                <div className="text-sm text-white/50 uppercase tracking-wider">{stat.label}</div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
       </section>
 
       {/* Services Overview */}
@@ -362,64 +302,6 @@ export const Landing: React.FC = () => {
           <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
             {techStack.map((tech, index) => (
               <span key={index} className="text-xl md:text-2xl font-bold text-white">{tech}</span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-32 px-4">
-        <div className="max-w-7xl mx-auto">
-          <AnimatedSection className="text-center mb-16">
-            <span className="text-sky-400 text-sm font-semibold uppercase tracking-wider mb-4 block">
-              Testimonials
-            </span>
-            <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
-              Loved by Businesses
-            </h2>
-          </AnimatedSection>
-
-          <StaggerContainer className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <StaggerItem key={index}>
-                <GlassCard className="p-8 h-full">
-                  <div className="flex gap-1 mb-4">
-                    {Array.from({ length: testimonial.rating }).map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-white/80 mb-6 leading-relaxed italic">"{testimonial.quote}"</p>
-                  <div>
-                    <div className="font-semibold text-white">{testimonial.author}</div>
-                    <div className="text-sm text-white/50">{testimonial.role}</div>
-                  </div>
-                </GlassCard>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-32 px-4 bg-white/[0.02]">
-        <div className="max-w-3xl mx-auto">
-          <AnimatedSection className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
-              Frequently Asked Questions
-            </h2>
-          </AnimatedSection>
-
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <AnimatedSection key={index} delay={index * 0.1}>
-                <GlassCard className="p-6">
-                  <h3 className="text-lg font-bold text-white mb-2 flex items-start gap-3">
-                    <HelpCircle className="h-5 w-5 text-sky-400 shrink-0 mt-1" />
-                    {faq.question}
-                  </h3>
-                  <p className="text-white/60 ml-8">{faq.answer}</p>
-                </GlassCard>
-              </AnimatedSection>
             ))}
           </div>
         </div>
