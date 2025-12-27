@@ -9,8 +9,9 @@ import { Button } from '../components/ui/Button';
 import { GradientText } from '../components/ui/FloatingElements';
 import { ROICalculator } from '../components/tools/ROICalculator';
 import {
-  ArrowRight, TrendingUp, CheckCircle2, XCircle, X, Star, Quote, HelpCircle
+  ArrowRight, TrendingUp, CheckCircle2, XCircle, X, Star, Quote, HelpCircle, Calendar
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface CaseStudy {
   id: string;
@@ -271,9 +272,20 @@ export const CaseStudies: React.FC = () => {
             <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6">
               <GradientText>Proven Results</GradientText>
             </h1>
-            <p className="text-xl text-white/60 max-w-2xl mx-auto mb-12">
+            <p className="text-xl text-white/60 max-w-2xl mx-auto mb-8">
               See how our AI agents deliver real ROI across industries.
             </p>
+          </AnimatedSection>
+
+          {/* CTA Button */}
+          <AnimatedSection delay={0.1}>
+            <div className="mb-12">
+              <Link to="/contact">
+                <Button size="lg" icon={<Calendar className="h-5 w-5" />}>
+                  Book Free Consultation
+                </Button>
+              </Link>
+            </div>
           </AnimatedSection>
 
           {/* Filters */}
@@ -413,6 +425,28 @@ export const CaseStudies: React.FC = () => {
               </AnimatedSection>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <AnimatedSection>
+            <GlassCard className="p-12 text-center">
+              <Calendar className="h-12 w-12 text-sky-400 mx-auto mb-6" />
+              <h2 className="text-3xl font-black text-white mb-4">
+                Ready to Get Similar Results?
+              </h2>
+              <p className="text-xl text-white/60 mb-8 max-w-xl mx-auto">
+                Schedule a free consultation to discuss how we can help transform your business with AI.
+              </p>
+              <Link to="/contact">
+                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
+                  Book Free Consultation
+                </Button>
+              </Link>
+            </GlassCard>
+          </AnimatedSection>
         </div>
       </section>
 

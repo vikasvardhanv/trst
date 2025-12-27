@@ -8,8 +8,8 @@ import { Button } from '../components/ui/Button';
 import { INDUSTRY_AGENTS } from '../constants';
 import {
   Play, MessageSquare, Mic, Bot, FileText, Briefcase,
-  ArrowLeft, ArrowRight, Sparkles, Network, Wand2, 
-  BarChart3, Brain, Workflow
+  ArrowLeft, ArrowRight, Sparkles, Network, Wand2,
+  BarChart3, Brain, Workflow, Calendar
 } from 'lucide-react';
 
 // Demo categories
@@ -147,10 +147,26 @@ export const Demos: React.FC = () => {
           </AnimatedSection>
 
           <AnimatedSection delay={0.2}>
-            <p className="text-xl text-white/60 max-w-2xl mx-auto">
+            <p className="text-xl text-white/60 max-w-2xl mx-auto mb-8">
               Experience our AI solutions firsthand. Each demo showcases real functionality
               you'll get in your custom solution.
             </p>
+          </AnimatedSection>
+
+          {/* CTA Buttons */}
+          <AnimatedSection delay={0.3}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link to="/contact">
+                <Button size="lg" icon={<Calendar className="h-5 w-5" />}>
+                  Book Free Consultation
+                </Button>
+              </Link>
+              <Link to="/case-studies">
+                <Button variant="secondary" size="lg" icon={<BarChart3 className="h-5 w-5" />}>
+                  View Case Studies
+                </Button>
+              </Link>
+            </div>
           </AnimatedSection>
         </div>
       </section>
@@ -212,11 +228,18 @@ export const Demos: React.FC = () => {
               <p className="text-xl text-white/60 mb-8">
                 Let's create a custom AI solution tailored to your business.
               </p>
-              <Link to="/contact">
-                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
-                  Get Started
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/contact">
+                  <Button size="lg" icon={<Calendar className="h-5 w-5" />}>
+                    Book Free Consultation
+                  </Button>
+                </Link>
+                <Link to="/case-studies">
+                  <Button variant="secondary" size="lg" icon={<BarChart3 className="h-5 w-5" />}>
+                    View Case Studies
+                  </Button>
+                </Link>
+              </div>
             </GlassCard>
           </AnimatedSection>
         </div>

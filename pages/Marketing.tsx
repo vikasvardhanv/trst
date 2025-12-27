@@ -8,7 +8,7 @@ import { Button } from '../components/ui/Button';
 import {
   ArrowRight, Megaphone, FileText, Mail, Calendar, BarChart3,
   Instagram, Facebook, Linkedin, Twitter, Youtube, Share2,
-  Sparkles, Check, Play, Zap, Target, TrendingUp
+  Sparkles, Check, Play, Zap, Target, TrendingUp, TrendingUp as CaseStudyIcon
 } from 'lucide-react';
 
 // Marketing tools
@@ -118,6 +118,22 @@ export const Marketing: React.FC = () => {
                   {platform.icon}
                 </motion.div>
               ))}
+            </div>
+          </AnimatedSection>
+
+          {/* CTA Buttons */}
+          <AnimatedSection delay={0.4}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link to="/contact">
+                <Button size="lg" icon={<Calendar className="h-5 w-5" />}>
+                  Book Free Consultation
+                </Button>
+              </Link>
+              <Link to="/case-studies">
+                <Button variant="secondary" size="lg" icon={<BarChart3 className="h-5 w-5" />}>
+                  View Case Studies
+                </Button>
+              </Link>
             </div>
           </AnimatedSection>
         </div>
@@ -274,13 +290,13 @@ export const Marketing: React.FC = () => {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link to="/contact">
-                  <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
-                    Get Started
+                  <Button size="lg" icon={<Calendar className="h-5 w-5" />}>
+                    Book Free Consultation
                   </Button>
                 </Link>
-                <Link to="/demos">
-                  <Button variant="secondary" size="lg" icon={<Play className="h-5 w-5" />}>
-                    View Full Demo
+                <Link to="/case-studies">
+                  <Button variant="secondary" size="lg" icon={<BarChart3 className="h-5 w-5" />}>
+                    View Case Studies
                   </Button>
                 </Link>
               </div>

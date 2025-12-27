@@ -4,10 +4,12 @@ import { Layout } from '../components/layout/Layout';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
+import { ConsultationAgent } from '../components/ConsultationAgent';
 import {
   Mail, Phone, MapPin, Send, MessageSquare, Calendar,
-  Clock, CheckCircle, ArrowRight
+  Clock, CheckCircle, ArrowRight, BarChart3, Bot
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Contact methods
 const contactMethods = [
@@ -64,6 +66,7 @@ export const Contact: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showAgent, setShowAgent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,10 +110,23 @@ export const Contact: React.FC = () => {
       {/* Contact Methods */}
       <section className="pb-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <StaggerContainer className="grid sm:grid-cols-3 gap-6">
+          <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Book Consultation - Special Card */}
+            <StaggerItem>
+              <button onClick={() => setShowAgent(true)} className="w-full h-full text-left">
+                <GlassCard className="p-6 text-center h-full group border-sky-500/30 hover:border-sky-500/50 bg-gradient-to-br from-sky-500/10 to-purple-500/10">
+                  <div className="inline-flex p-3 rounded-xl bg-sky-500/20 text-sky-400 mb-4 group-hover:scale-110 transition-transform">
+                    <Bot className="h-6 w-6" />
+                  </div>
+                  <h3 className="font-bold text-white mb-1">Book Consultation</h3>
+                  <p className="text-white/60 text-sm">AI-powered booking</p>
+                </GlassCard>
+              </button>
+            </StaggerItem>
+
             {contactMethods.map((method, index) => (
               <StaggerItem key={index}>
-                <a href={method.href} target={method.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer">
+                <a href={method.href} target={method.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="block h-full">
                   <GlassCard className="p-6 text-center h-full group">
                     <div className={`inline-flex p-3 rounded-xl bg-${method.color}-500/20 text-${method.color}-400 mb-4 group-hover:scale-110 transition-transform`}>
                       {method.icon}
@@ -124,6 +140,9 @@ export const Contact: React.FC = () => {
           </StaggerContainer>
         </div>
       </section>
+
+      {/* Consultation Agent Modal */}
+      <ConsultationAgent isOpen={showAgent} onClose={() => setShowAgent(false)} />
 
       {/* Contact Form & Info */}
       <section className="py-20 px-4">
@@ -277,6 +296,28 @@ export const Contact: React.FC = () => {
               </div>
             </AnimatedSection>
           </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <AnimatedSection>
+            <GlassCard className="p-12 text-center">
+              <BarChart3 className="h-12 w-12 text-sky-400 mx-auto mb-6" />
+              <h2 className="text-3xl font-black text-white mb-4">
+                See Our Results First
+              </h2>
+              <p className="text-xl text-white/60 mb-8 max-w-xl mx-auto">
+                Check out our case studies to see how we've helped businesses like yours achieve amazing results.
+              </p>
+              <Link to="/case-studies">
+                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
+                  View Case Studies
+                </Button>
+              </Link>
+            </GlassCard>
+          </AnimatedSection>
         </div>
       </section>
     </Layout>

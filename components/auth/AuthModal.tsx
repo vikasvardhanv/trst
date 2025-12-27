@@ -271,7 +271,7 @@ export const AuthModal: React.FC = () => {
           className="relative w-full max-w-md max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          <GlassCard className="p-8">
+          <GlassCard className="p-8" tilt={false}>
             {/* Close button */}
             <button
               onClick={() => setShowAuthModal(false)}

@@ -9,7 +9,7 @@ import { Button } from '../components/ui/Button';
 import { INDUSTRY_AGENTS } from '../constants';
 import {
   ArrowRight, Bot, Play, Check, Sparkles, MessageSquare,
-  Calendar, ShoppingCart, Stethoscope, Scissors, Car, HardHat, ChevronRight
+  Calendar, ShoppingCart, Stethoscope, Scissors, Car, HardHat, ChevronRight, BarChart3
 } from 'lucide-react';
 
 // Extended agent details
@@ -108,11 +108,18 @@ export const Agents: React.FC = () => {
           </AnimatedSection>
 
           <AnimatedSection delay={0.3}>
-            <Link to="/demos">
-              <Button size="lg" icon={<Play className="h-5 w-5" />}>
-                Try Live Demos
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link to="/contact">
+                <Button size="lg" icon={<Calendar className="h-5 w-5" />}>
+                  Book Free Consultation
+                </Button>
+              </Link>
+              <Link to="/case-studies">
+                <Button variant="secondary" size="lg" icon={<BarChart3 className="h-5 w-5" />}>
+                  View Case Studies
+                </Button>
+              </Link>
+            </div>
           </AnimatedSection>
         </div>
       </section>
@@ -244,11 +251,18 @@ export const Agents: React.FC = () => {
                 Don't see your industry? We build custom AI agents tailored to your specific
                 business requirements.
               </p>
-              <Link to="/contact">
-                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />}>
-                  Discuss Custom Solution
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/contact">
+                  <Button size="lg" icon={<Calendar className="h-5 w-5" />}>
+                    Book Free Consultation
+                  </Button>
+                </Link>
+                <Link to="/case-studies">
+                  <Button variant="secondary" size="lg" icon={<BarChart3 className="h-5 w-5" />}>
+                    View Case Studies
+                  </Button>
+                </Link>
+              </div>
             </GlassCard>
           </AnimatedSection>
         </div>
