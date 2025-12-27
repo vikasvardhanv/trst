@@ -31,9 +31,12 @@ async function initDatabase() {
     process.exit(1);
   }
 
+  // Parse DATABASE_URL to check if it requires SSL
+  const requiresSSL = process.env.DATABASE_URL?.includes('sslmode=require');
+
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: requiresSSL ? { rejectUnauthorized: false } : false,
   });
 
   try {

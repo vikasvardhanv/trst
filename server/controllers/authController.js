@@ -108,9 +108,17 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail
+    });
     res.status(500).json({
       success: false,
-      message: 'An error occurred during signup'
+      message: 'An error occurred during signup',
+      // Include error details in development
+      ...(process.env.NODE_ENV !== 'production' && { error: error.message })
     });
   }
 };
@@ -167,9 +175,15 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail
+    });
     res.status(500).json({
       success: false,
-      message: 'An error occurred during login'
+      message: 'An error occurred during login',
+      ...(process.env.NODE_ENV !== 'production' && { error: error.message })
     });
   }
 };
