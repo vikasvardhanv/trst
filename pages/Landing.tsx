@@ -51,7 +51,6 @@ const stats = [
   { value: '500+', label: 'Projects Delivered' },
   { value: '98%', label: 'Client Satisfaction' },
   { value: '24/7', label: 'AI Availability' },
-  { value: '50+', label: 'Industries Served' },
 ];
 
 // Testimonials
