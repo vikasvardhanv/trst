@@ -2,8 +2,10 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './context/AuthContext';
+import { CookieConsentProvider } from './context/CookieConsentContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { CookieBanner, CookiePreferences } from './components/CookieConsent';
 
 // Lazy load all pages for faster initial load
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
@@ -13,6 +15,11 @@ const Marketing = lazy(() => import('./pages/Marketing').then(m => ({ default: m
 const Demos = lazy(() => import('./pages/Demos').then(m => ({ default: m.Demos })));
 const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const CaseStudies = lazy(() => import('./pages/CaseStudies').then(m => ({ default: m.CaseStudies })));
+
+// Legal pages - lazy loaded
+const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService = lazy(() => import('./pages/legal/TermsOfService').then(m => ({ default: m.TermsOfService })));
+const CookiePolicy = lazy(() => import('./pages/legal/CookiePolicy').then(m => ({ default: m.CookiePolicy })));
 
 // Demo pages - lazy loaded
 const RestaurantDemo = lazy(() => import('./pages/demos/RestaurantDemo').then(m => ({ default: m.RestaurantDemo })));
@@ -99,6 +106,11 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/demos" element={<PageTransition><Demos /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
 
+        {/* Legal pages */}
+        <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+        <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
+        <Route path="/cookies" element={<PageTransition><CookiePolicy /></PageTransition>} />
+
         {/* Protected Demo routes - require login */}
         <Route path="/demos/restaurant" element={<PageTransition><ProtectedRoute><RestaurantDemo /></ProtectedRoute></PageTransition>} />
         <Route path="/demos/clinic" element={<PageTransition><ProtectedRoute><ClinicDemo /></ProtectedRoute></PageTransition>} />
@@ -156,13 +168,17 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <ScrollToTop />
-        <div className="w-full min-h-screen bg-gray-900 text-white">
-          <Suspense fallback={<LoadingSpinner />}>
-            <AnimatedRoutes />
-          </Suspense>
-        </div>
-        <AuthModal />
+        <CookieConsentProvider>
+          <ScrollToTop />
+          <div className="w-full min-h-screen bg-gray-900 text-white">
+            <Suspense fallback={<LoadingSpinner />}>
+              <AnimatedRoutes />
+            </Suspense>
+          </div>
+          <AuthModal />
+          <CookieBanner />
+          <CookiePreferences />
+        </CookieConsentProvider>
       </AuthProvider>
     </Router>
   );

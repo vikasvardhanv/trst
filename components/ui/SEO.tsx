@@ -24,9 +24,9 @@ const BASE_URL = 'https://highshiftmedia.com';
 const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`;
 
 export const SEO: React.FC<SEOProps> = ({
-  title = 'Highshift Media | Premier AI Automation & Development Agency',
-  description = 'Transform your business with Highshift Media. We specialize in custom AI agents, chatbots, marketing automation, and enterprise LLM integration. Trusted by 500+ businesses worldwide.',
-  keywords = 'AI Agency, Artificial Intelligence, Automation, Chatbots, LLM, Machine Learning, Business Automation, Marketing AI, Highshift Media, AI Agents, Voice AI, WhatsApp Bot',
+  title = 'Highshift Media | Digital Marketing Agency & AI Automation Services',
+  description = 'Highshift Media is a premier digital marketing agency specializing in AI automation, social media marketing, content marketing, and SEO services. Best digital marketing agency for small businesses with affordable marketing solutions.',
+  keywords = 'digital marketing agency, media marketing services, social media marketing agency, content marketing agency, SEO and content marketing, local digital marketing agency, influencer marketing agency, best digital marketing agency for small businesses, affordable social media marketing services, AI automation, chatbots, marketing automation',
   image = DEFAULT_IMAGE,
   url = BASE_URL,
   type = 'website',
@@ -46,7 +46,7 @@ export const SEO: React.FC<SEOProps> = ({
     "@type": "Organization",
     "@id": `${BASE_URL}/#organization`,
     "name": "Highshift Media",
-    "alternateName": "Highshift AI Agency",
+    "alternateName": ["Highshift AI Agency", "Highshift Digital Marketing"],
     "url": BASE_URL,
     "logo": {
       "@type": "ImageObject",
@@ -55,12 +55,15 @@ export const SEO: React.FC<SEOProps> = ({
       "height": 512
     },
     "image": DEFAULT_IMAGE,
-    "description": description,
+    "description": "Highshift Media is a premier digital marketing agency specializing in AI automation, social media marketing, content marketing, and SEO services for businesses of all sizes.",
     "email": "info@highshiftmedia.com",
     "telephone": "+1-630-703-3569",
     "sameAs": [
-      "https://twitter.com/highshiftmedia",
-      "https://linkedin.com/company/highshiftmedia",
+      "https://www.tiktok.com/@highshiftmedia",
+      "https://www.facebook.com/profile.php?id=61582587125978",
+      "https://www.instagram.com/highshift_media/",
+      "https://www.youtube.com/@highshiftmedia",
+      "https://x.com/Highshiftmedia",
       "https://wa.me/+16307033569"
     ],
     "contactPoint": {
@@ -70,16 +73,102 @@ export const SEO: React.FC<SEOProps> = ({
       "email": "info@highshiftmedia.com",
       "availableLanguage": ["English"]
     },
-    "areaServed": "Worldwide",
+    "areaServed": {
+      "@type": "GeoCircle",
+      "geoMidpoint": {
+        "@type": "GeoCoordinates",
+        "latitude": "41.8781",
+        "longitude": "-87.6298"
+      },
+      "geoRadius": "5000"
+    },
     "knowsAbout": [
+      "Digital Marketing",
+      "Social Media Marketing",
+      "Content Marketing",
+      "SEO Services",
       "Artificial Intelligence",
-      "Machine Learning", 
-      "Chatbots",
-      "Business Automation",
       "Marketing Automation",
+      "Chatbots",
       "Voice AI",
-      "LLM Integration"
+      "Influencer Marketing"
     ]
+  };
+
+  // LocalBusiness Schema for Local SEO
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": `${BASE_URL}/#localbusiness`,
+    "name": "Highshift Media",
+    "image": DEFAULT_IMAGE,
+    "url": BASE_URL,
+    "telephone": "+1-630-703-3569",
+    "email": "info@highshiftmedia.com",
+    "priceRange": "$$",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Chicago",
+      "addressRegion": "IL",
+      "addressCountry": "US"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "41.8781",
+      "longitude": "-87.6298"
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "09:00",
+      "closes": "18:00"
+    },
+    "sameAs": [
+      "https://www.tiktok.com/@highshiftmedia",
+      "https://www.facebook.com/profile.php?id=61582587125978",
+      "https://www.instagram.com/highshift_media/",
+      "https://www.youtube.com/@highshiftmedia",
+      "https://x.com/Highshiftmedia"
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "127"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Digital Marketing Services",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Social Media Marketing"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Content Marketing"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "AI Automation"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "SEO Services"
+          }
+        }
+      ]
+    }
   };
 
   // WebPage Schema
@@ -119,9 +208,9 @@ export const SEO: React.FC<SEOProps> = ({
     ]
   };
 
-  const finalSchemas = schema 
-    ? [schema, organizationSchema, breadcrumbSchema]
-    : [organizationSchema, webPageSchema, breadcrumbSchema];
+  const finalSchemas = schema
+    ? [schema, organizationSchema, localBusinessSchema, breadcrumbSchema]
+    : [organizationSchema, localBusinessSchema, webPageSchema, breadcrumbSchema];
 
   return (
     <Helmet>

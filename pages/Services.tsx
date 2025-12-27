@@ -363,9 +363,10 @@ export const Services: React.FC = () => {
   return (
     <Layout>
       <SEO
-        title="AI Services & Solutions | Highshift Media"
-        description="Complete AI agency services: Chat Agents, Voice AI, Video Agents, Marketing Automation, CRM Integration, and Custom AI Solutions for every industry."
-        keywords="AI Agents, AI Chatbots, Voice AI, Video AI, Business Automation, AI Marketing, AI Consulting, Custom AI Models"
+        title="Digital Marketing Services & AI Solutions | Highshift Media"
+        description="Full-service digital marketing agency offering AI chatbots, voice agents, social media marketing, content marketing, SEO services, and marketing automation. Affordable solutions for small businesses. Get custom AI solutions for your industry."
+        keywords="digital marketing services, AI chatbot services, voice AI solutions, social media marketing services, content marketing services, SEO services, marketing automation, small business marketing, affordable digital marketing"
+        url="/services"
       />
 
       {/* Hero Section */}

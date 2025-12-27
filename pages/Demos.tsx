@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Layout } from '../components/layout/Layout';
+import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
@@ -126,6 +127,12 @@ export const Demos: React.FC = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Try AI Demos | Interactive Chatbot & Voice Agent Demos | Highshift Media"
+        description="Experience our AI solutions firsthand. Try interactive demos of AI chatbots, voice agents, WhatsApp bots, and marketing automation. See how our digital marketing agency can transform your business with live demos."
+        keywords="AI chatbot demo, voice agent demo, WhatsApp bot demo, marketing automation demo, try AI solutions, interactive AI demos, digital marketing agency demos, business AI demos"
+        url="/demos"
+      />
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto text-center">

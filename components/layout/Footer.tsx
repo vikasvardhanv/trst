@@ -152,6 +152,9 @@ export const Footer: React.FC = () => {
             <Link to="/terms" className="text-white/40 hover:text-white transition-colors">
               Terms of Service
             </Link>
+            <Link to="/cookies" className="text-white/40 hover:text-white transition-colors">
+              Cookie Policy
+            </Link>
           </div>
         </div>
       </div>

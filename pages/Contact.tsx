@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Layout } from '../components/layout/Layout';
+import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
@@ -88,6 +89,12 @@ export const Contact: React.FC = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Contact Us | Get a Free Consultation | Highshift Media"
+        description="Contact Highshift Media for AI automation and digital marketing services. Book a free consultation to discuss your business needs. Best digital marketing agency for small businesses - get affordable marketing solutions today."
+        keywords="contact digital marketing agency, free marketing consultation, AI automation consultation, small business marketing help, affordable marketing agency, get a quote, book consultation, digital marketing services"
+        url="/contact"
+      />
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto text-center">

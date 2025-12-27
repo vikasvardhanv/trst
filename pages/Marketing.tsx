@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from '../components/layout/Layout';
+import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
@@ -77,6 +78,12 @@ export const Marketing: React.FC = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Social Media Marketing & Content Automation | Highshift Media"
+        description="Leading social media marketing agency offering content marketing, email automation, and AI-powered marketing solutions. Affordable social media marketing services for small businesses. Boost engagement 10x with our marketing automation platform."
+        keywords="social media marketing agency, content marketing agency, email marketing automation, AI marketing, social media automation, affordable social media marketing services, content generation AI, marketing analytics, digital marketing services"
+        url="/marketing"
+      />
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto text-center">

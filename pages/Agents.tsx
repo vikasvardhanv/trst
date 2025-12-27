@@ -75,10 +75,11 @@ export const Agents: React.FC = () => {
 
   return (
     <Layout>
-      <SEO 
-        title="Industry AI Agents | Highshift Media"
-        description="Specialized AI agents for Restaurants, Clinics, Salons, Dealerships, and Construction. Automate your industry-specific workflows today."
-        keywords="Restaurant AI, Clinic Chatbot, Salon Booking AI, Dealership AI, Construction Automation"
+      <SEO
+        title="AI Agents for Business | Industry-Specific Automation | Highshift Media"
+        description="Deploy AI agents for restaurants, clinics, salons, dealerships & construction. Our digital marketing agency builds custom chatbots and automation solutions for small businesses. Best AI marketing solutions for your industry."
+        keywords="AI agents for business, restaurant AI chatbot, clinic booking automation, salon AI assistant, dealership AI, construction automation, digital marketing agency, small business AI, industry-specific chatbots"
+        url="/agents"
       />
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">

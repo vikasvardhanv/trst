@@ -27,3 +27,5 @@ node_modules
 .env.test
 todo.md
 .env.local
+.env.production
+DEPLOYMENT.md

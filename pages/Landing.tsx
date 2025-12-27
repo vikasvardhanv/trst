@@ -81,10 +81,11 @@ const techStack = [
 export const Landing: React.FC = () => {
   return (
     <Layout>
-      <SEO 
-        title="Highshift Media | #1 AI Automation Agency"
-        description="Transform your business with the top AI agency. We build custom AI agents, chatbots, and automation workflows for clinics, dealerships, and enterprises."
-        keywords="AI Agency, AI Automation, Custom Chatbots, Business AI, Highshift Media, Generative AI Services"
+      <SEO
+        title="Highshift Media | Digital Marketing Agency & AI Automation Services"
+        description="Highshift Media is a premier digital marketing agency specializing in AI automation, social media marketing, content marketing, and SEO services. Best digital marketing agency for small businesses with affordable marketing solutions."
+        keywords="digital marketing agency, social media marketing agency, content marketing agency, SEO services, AI automation, local digital marketing agency, best digital marketing agency for small businesses, affordable marketing services, marketing automation, business chatbots"
+        url="/"
       />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-20 pb-32 px-4 overflow-hidden">

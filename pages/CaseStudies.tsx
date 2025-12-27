@@ -261,9 +261,10 @@ export const CaseStudies: React.FC = () => {
   return (
     <Layout>
       <SEO
-        title="AI Case Studies & Success Stories | Highshift Media"
-        description="See how Highshift Media's AI agents transform businesses. Real results, metrics, and before/after comparisons for Clinics, Dealerships, and more."
-        keywords="AI Case Studies, Business Automation Results, AI ROI, Client Success Stories"
+        title="Case Studies & Success Stories | Digital Marketing Results | Highshift Media"
+        description="See real results from our digital marketing agency. Case studies showing ROI from AI automation, social media marketing, and content marketing campaigns. Best digital marketing agency for small businesses with proven success."
+        keywords="digital marketing case studies, AI automation results, social media marketing ROI, content marketing success stories, small business marketing results, marketing agency portfolio, client success stories"
+        url="/case-studies"
       />
 
       <section className="pt-32 pb-16 px-4">
