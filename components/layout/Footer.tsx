@@ -8,21 +8,22 @@ const footerLinks = {
   services: [
     { name: 'AI Agents', path: '/agents' },
     { name: 'Marketing Hub', path: '/marketing' },
-    { name: 'Chatbot Development', path: '/services/chatbot' },
-    { name: 'Voice AI', path: '/demos/voice' },
-    { name: 'WhatsApp Bot', path: '/demos/whatsapp' },
+    { name: 'All Services', path: '/services' },
+    { name: 'Live Demos', path: '/demos' },
+    { name: 'Case Studies', path: '/case-studies' },
   ],
   company: [
-    { name: 'About Us', path: '/about' },
-    { name: 'Case Studies', path: '/cases' },
-    { name: 'Pricing', path: '/pricing' },
-    { name: 'Contact', path: '/contact' },
+    { name: 'Contact Us', path: '/contact' },
+    { name: 'Careers', path: '/careers' },
+    { name: 'Privacy Policy', path: '/privacy' },
+    { name: 'Terms of Service', path: '/terms' },
   ],
-  resources: [
-    { name: 'Documentation', path: '/docs' },
-    { name: 'API Reference', path: '/api' },
-    { name: 'Blog', path: '/blog' },
-    { name: 'Support', path: '/support' },
+  quickLinks: [
+    { name: 'Restaurant AI', path: '/demos/restaurant' },
+    { name: 'Clinic AI', path: '/demos/clinic' },
+    { name: 'Salon AI', path: '/demos/salon' },
+    { name: 'Real Estate AI', path: '/demos/real_estate' },
+    { name: 'Legal AI', path: '/demos/legal' },
   ],
 };
 
@@ -102,9 +103,9 @@ export const Footer: React.FC = () => {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Resources</h3>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Quick Links</h3>
             <ul className="space-y-3">
-              {footerLinks.resources.map((link) => (
+              {footerLinks.quickLinks.map((link) => (
                 <li key={link.path}>
                   <Link
                     to={link.path}

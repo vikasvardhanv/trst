@@ -319,10 +319,21 @@
       }
     </style>
     
+    <!-- Google Sign-In -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Apple Sign-In -->
+    <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async defer></script>
+    <meta name="appleid-signin-client-id" content="com.highshiftmedia.signin">
+    <meta name="appleid-signin-scope" content="name email">
+    <meta name="appleid-signin-redirect-uri" content="https://highshiftmedia.com">
+    <meta name="appleid-signin-state" content="origin:web">
+    <meta name="appleid-signin-use-popup" content="true">
+
     <!-- Calendly popup widget (no badge - opens programmatically) -->
     <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" media="print" onload="this.media='all'" />
     <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async defer></script>
-    
+
     <!-- Structured Data / JSON-LD for Rich Snippets & AI Search -->
     <script type="application/ld+json">
     {

@@ -9,9 +9,10 @@ import { Button } from '../components/ui/Button';
 import { GradientText } from '../components/ui/FloatingElements';
 import { BrandLogo, INDUSTRY_AGENTS } from '../constants';
 import { openCalendlyWithEmail } from '../utils/calendly';
+import { HowWeWorkVideo } from '../components/HowWeWorkVideo';
 import {
   ArrowRight, Sparkles, Zap, Shield, BarChart3, MessageSquare,
-  Bot, Megaphone, Play, ChevronRight, Check, Cpu, Workflow, Layers
+  Bot, Megaphone, Play, ChevronRight, Check
 } from 'lucide-react';
 
 // Hero section features
@@ -47,30 +48,6 @@ const serviceHighlights = [
 ];
 
 
-
-// Process Steps
-const processSteps = [
-  {
-    icon: <MessageSquare className="h-6 w-6" />,
-    title: "Discovery",
-    description: "We analyze your workflows to identify high-impact automation opportunities."
-  },
-  {
-    icon: <Workflow className="h-6 w-6" />,
-    title: "Strategy",
-    description: "We design a custom AI roadmap tailored to your specific business goals."
-  },
-  {
-    icon: <Cpu className="h-6 w-6" />,
-    title: "Development",
-    description: "Our engineers build, train, and integrate your custom AI agents."
-  },
-  {
-    icon: <BarChart3 className="h-6 w-6" />,
-    title: "Optimization",
-    description: "Continuous monitoring and refinement to ensure maximum ROI."
-  }
-];
 
 // Tech Stack
 const techStack = [
@@ -221,7 +198,7 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* Process Section */}
+      {/* Process Section - Interactive Video Showcase */}
       <section className="py-32 px-4 bg-white/[0.02]">
         <div className="max-w-7xl mx-auto">
           <AnimatedSection className="text-center mb-16">
@@ -231,26 +208,14 @@ export const Landing: React.FC = () => {
             <h2 className="text-4xl sm:text-5xl font-black text-white mb-6">
               Your Path to AI Transformation
             </h2>
+            <p className="text-white/60 max-w-2xl mx-auto">
+              Click any step to watch a demo video of our process in action
+            </p>
           </AnimatedSection>
 
-          <StaggerContainer className="grid md:grid-cols-4 gap-8">
-            {processSteps.map((step, index) => (
-              <StaggerItem key={index}>
-                <div className="relative">
-                  {index < processSteps.length - 1 && (
-                    <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gradient-to-r from-sky-500/50 to-transparent -z-10" />
-                  )}
-                  <GlassCard className="p-6 h-full text-center relative bg-gray-900/50">
-                    <div className="w-12 h-12 mx-auto bg-sky-500/20 rounded-full flex items-center justify-center text-sky-400 mb-4">
-                      {step.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
-                    <p className="text-sm text-white/60">{step.description}</p>
-                  </GlassCard>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
+          <AnimatedSection delay={0.2}>
+            <HowWeWorkVideo />
+          </AnimatedSection>
         </div>
       </section>
 
