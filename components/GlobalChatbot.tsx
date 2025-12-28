@@ -11,12 +11,24 @@ interface Message {
   timestamp: Date;
 }
 
+const sanitizeAssistantText = (text: string) => {
+  return text
+    .replace(/\*\*/g, '')
+    .replace(/[`*_>#]/g, '')
+    .replace(/^\s*[-•]\s+/gm, '')
+    .replace(/[•]/g, '')
+    .replace(/\r/g, '')
+    .replace(/[^\x20-\x7E\n]/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
 export const GlobalChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi there! 👋 I'm the Highshift AI Assistant. I can help you with:\n\n• Project requirements\n• Service information\n• Scheduling a consultation\n\nHow can I help you today?",
+      text: "Hi, I am the Highshift Assistant. I can help with project requirements, service details, and booking a consultation. How can I help you today?",
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -82,26 +94,16 @@ export const GlobalChatbot: React.FC = () => {
         contents: contents,
         config: {
           systemInstruction: {
-            parts: [{ text: `You are the Highshift Media AI Consultant. Your goal is to help potential clients by understanding their needs and gathering requirements for their AI or software projects.
-
-            Your capabilities:
-            1. Discuss Highshift services: Custom Chatbots, AI Automation, Voice Agents, Web Design, Marketing.
-            2. Onboarding: Ask relevant questions to understand their project (industry, goals, budget, timeline).
-            3. Lead Capture: If they seem interested, ask for their name and email or phone number so a human expert can contact them.
-            4. Handoff: If you can't answer something or if they want to talk to a human, tell them you've noted their request and a senior consultant will reach out shortly (after you've got their contact info).
-
-            Tone: Professional, helpful, modern, and concise.
-            Do not make up technical details you don't know.
-            Always try to move the conversation towards gathering requirements or booking a consultation.` }]
+            parts: [{ text: `You are the Highshift Media assistant. Your goal is to help potential clients by understanding their needs and gathering requirements for AI or software projects. Speak like a knowledgeable human consultant. Use plain text only. Do not use markdown, bullet points, numbered lists, emojis, or special symbols. Use short paragraphs and complete sentences. Ask relevant questions about industry, goals, budget, timeline, integrations, and success metrics. If they show interest, ask for their name and email or phone number so a consultant can follow up. If you cannot answer or they want a human, say you will pass the request to a senior consultant after you get contact details. Do not invent technical details. Aim to move the conversation toward a consultation booking.` }]
           }
         }
       });
 
-      const text = response.text;
+      const text = sanitizeAssistantText(response.text || '');
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: text || "I'm sorry, I didn't catch that.",
+        text: text || "Sorry, I did not catch that. Could you rephrase your question?",
         sender: 'bot',
         timestamp: new Date(),
       };
@@ -111,7 +113,7 @@ export const GlobalChatbot: React.FC = () => {
       console.error("Chat error:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: `I'm having trouble connecting to the server right now. (Error: ${error.message || 'Unknown'}). Please try again later or contact us directly at info@highshiftmedia.com.`,
+        text: sanitizeAssistantText(`I am having trouble connecting to the server right now. Error details: ${error.message || 'Unknown'}. Please try again later or contact us directly at info@highshiftmedia.com.`),
         sender: 'bot',
         timestamp: new Date(),
       };
