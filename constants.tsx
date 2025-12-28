@@ -16,35 +16,58 @@ import {
 export { IndustryAgentsIcon, MarketingHubIcon, ClinicIcon, ConstructionIcon, DealershipIcon, RestaurantIcon, SalonIcon, RealEstateIcon, LegalIcon, EcommerceIcon, EducationIcon, RecruitmentIcon, EmailIcon, SocialMediaIcon };
 
 
-export const BrandLogo = ({ className = "h-32 w-32" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="bg_grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="rgba(56, 189, 248, 0.4)" />
-        <stop offset="100%" stopColor="rgba(30, 58, 138, 0.8)" />
-      </linearGradient>
-      <filter id="glass_blur" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="5" />
-      </filter>
-    </defs>
-    
-    <circle cx="256" cy="256" r="230" fill="url(#bg_grad)" stroke="rgba(255,255,255,0.2)" strokeWidth="4"/>
-    
-    {/* Specular highlight for glass look */}
-    <ellipse cx="180" cy="140" rx="60" ry="30" fill="rgba(255,255,255,0.1)" transform="rotate(-30, 180, 140)" />
+export const BrandLogo = ({ className = "h-32 w-32" }: { className?: string }) => {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
 
-    {/* Grid Background */}
-    <path d="M120 120H392M120 200H392M120 280H392M120 360H392" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-    <path d="M120 120V392M200 120V392M280 120V392M360 120V392" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-    
-    {/* Growth Arrow ZigZag with Gloss */}
-    <path d="M80 420L150 340L210 380L310 220L360 270L440 130" stroke="white" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
-    <path d="M80 420L150 340L210 380L310 220L360 270L440 130" stroke="#0ea5e9" strokeWidth="20" strokeLinecap="round" strokeLinejoin="round" />
-    
-    {/* Arrow Tip */}
-    <path d="M440 130L370 145M440 130L425 200" stroke="#0ea5e9" strokeWidth="20" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Ensure video loops continuously
+    video.loop = true;
+
+    // Start playing
+    const playPromise = video.play();
+
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.log('Video autoplay prevented:', error);
+      });
+    }
+
+    // Extra safeguard: restart on ended event (though loop should handle this)
+    const handleEnded = () => {
+      video.currentTime = 0;
+      video.play().catch(console.log);
+    };
+
+    video.addEventListener('ended', handleEnded);
+
+    return () => {
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
+  return (
+    <div className={`${className} relative rounded-full overflow-hidden shadow-2xl`}>
+      {/* Video */}
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        className="w-full h-full object-cover"
+      >
+        <source src="/videos/inline.mp4" type="video/mp4" />
+      </video>
+
+      {/* Subtle border */}
+      <div className="absolute inset-0 border-2 border-white/10 rounded-full pointer-events-none" />
+    </div>
+  );
+};
 
 // Service Icons
 const ChatbotIcon = () => <MessageSquare className="h-10 w-10 mb-4 text-sky-400" />;

@@ -8,9 +8,15 @@ const processSteps = [
     icon: <MessageSquare className="h-6 w-6" />,
     title: "Discovery",
     description: "We analyze your workflows to identify high-impact automation opportunities.",
-    videoPlaceholder: "/videos/discovery-demo.mp4", // You'll add actual videos
+    videoPlaceholder: "/videos/discovery-demo.mp4",
     demoDescription: "Watch how we conduct a comprehensive business analysis",
-    color: "sky"
+    gradientFrom: "from-sky-500/20",
+    gradientTo: "to-sky-500/5",
+    iconBg: "bg-sky-500/10",
+    iconText: "text-sky-400",
+    playBg: "bg-sky-500/20",
+    playBorder: "border-sky-400",
+    playText: "text-sky-400"
   },
   {
     icon: <Workflow className="h-6 w-6" />,
@@ -18,7 +24,13 @@ const processSteps = [
     description: "We design a custom AI roadmap tailored to your specific business goals.",
     videoPlaceholder: "/videos/strategy-demo.mp4",
     demoDescription: "See our AI roadmap planning process in action",
-    color: "purple"
+    gradientFrom: "from-purple-500/20",
+    gradientTo: "to-purple-500/5",
+    iconBg: "bg-purple-500/10",
+    iconText: "text-purple-400",
+    playBg: "bg-purple-500/20",
+    playBorder: "border-purple-400",
+    playText: "text-purple-400"
   },
   {
     icon: <Cpu className="h-6 w-6" />,
@@ -26,7 +38,13 @@ const processSteps = [
     description: "Our engineers build, train, and integrate your custom AI agents.",
     videoPlaceholder: "/videos/development-demo.mp4",
     demoDescription: "Behind the scenes: Building an AI chatbot",
-    color: "emerald"
+    gradientFrom: "from-emerald-500/20",
+    gradientTo: "to-emerald-500/5",
+    iconBg: "bg-emerald-500/10",
+    iconText: "text-emerald-400",
+    playBg: "bg-emerald-500/20",
+    playBorder: "border-emerald-400",
+    playText: "text-emerald-400"
   },
   {
     icon: <BarChart3 className="h-6 w-6" />,
@@ -34,7 +52,13 @@ const processSteps = [
     description: "Continuous monitoring and refinement to ensure maximum ROI.",
     videoPlaceholder: "/videos/optimization-demo.mp4",
     demoDescription: "Live dashboard: Tracking AI performance metrics",
-    color: "orange"
+    gradientFrom: "from-orange-500/20",
+    gradientTo: "to-orange-500/5",
+    iconBg: "bg-orange-500/10",
+    iconText: "text-orange-400",
+    playBg: "bg-orange-500/20",
+    playBorder: "border-orange-400",
+    playText: "text-orange-400"
   }
 ];
 
@@ -44,8 +68,8 @@ export const HowWeWorkVideo: React.FC = () => {
 
   return (
     <div className="relative">
-      {/* Process Steps Grid */}
-      <div className="grid md:grid-cols-4 gap-8">
+      {/* Process Steps Grid - Equal width columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {processSteps.map((step, index) => (
           <motion.div
             key={index}
@@ -54,59 +78,53 @@ export const HowWeWorkVideo: React.FC = () => {
             transition={{ delay: index * 0.1 }}
             onMouseEnter={() => setHoveredStep(index)}
             onMouseLeave={() => setHoveredStep(null)}
+            className="flex"
           >
-            <div className="relative">
-              {/* Connecting Line */}
-              {index < processSteps.length - 1 && (
-                <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gradient-to-r from-sky-500/50 to-transparent -z-10" />
-              )}
+            {/* Step Card */}
+            <button
+              onClick={() => setSelectedStep(index)}
+              className="w-full group"
+            >
+              <GlassCard className={`p-6 h-full flex flex-col text-center relative transition-all duration-300 ${
+                hoveredStep === index ? 'bg-white/[0.08] scale-[1.02] shadow-xl' : 'bg-white/[0.02]'
+              }`}>
+                {/* Play Button Overlay on Hover */}
+                <AnimatePresence>
+                  {hoveredStep === index && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl z-10"
+                    >
+                      <div className={`w-16 h-16 rounded-full ${step.playBg} border-2 ${step.playBorder} flex items-center justify-center shadow-lg`}>
+                        <Play className={`h-6 w-6 ${step.playText} ml-1`} fill="currentColor" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              {/* Step Card */}
-              <button
-                onClick={() => setSelectedStep(index)}
-                className="w-full text-left group"
-              >
-                <GlassCard className={`p-6 h-full text-center relative transition-all duration-300 ${
-                  hoveredStep === index ? 'bg-gray-900/80 scale-105' : 'bg-gray-900/50'
-                }`}>
-                  {/* Play Button Overlay on Hover */}
-                  <AnimatePresence>
-                    {hoveredStep === index && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-xl z-10"
-                      >
-                        <div className={`w-16 h-16 rounded-full bg-${step.color}-500/20 border-2 border-${step.color}-400 flex items-center justify-center`}>
-                          <Play className={`h-6 w-6 text-${step.color}-400 ml-1`} fill="currentColor" />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                {/* Step Number Badge */}
+                <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full bg-gradient-to-br ${step.gradientFrom} ${step.gradientTo} border-2 ${step.playBorder} text-white text-sm font-bold flex items-center justify-center shadow-lg`}>
+                  {index + 1}
+                </div>
 
-                  {/* Step Number Badge */}
-                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-sky-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">
-                    {index + 1}
-                  </div>
+                {/* Icon */}
+                <div className={`w-14 h-14 mx-auto ${step.iconBg} rounded-full flex items-center justify-center ${step.iconText} mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+                  {step.icon}
+                </div>
 
-                  {/* Icon */}
-                  <div className={`w-12 h-12 mx-auto bg-${step.color}-500/20 rounded-full flex items-center justify-center text-${step.color}-400 mb-4 transition-transform group-hover:scale-110`}>
-                    {step.icon}
-                  </div>
+                {/* Content */}
+                <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+                <p className="text-sm text-white/70 mb-4 flex-grow leading-relaxed">{step.description}</p>
 
-                  {/* Content */}
-                  <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
-                  <p className="text-sm text-white/60 mb-3">{step.description}</p>
-
-                  {/* Demo Label */}
-                  <div className="flex items-center justify-center gap-2 text-xs text-sky-400 font-medium">
-                    <Play className="h-3 w-3" />
-                    <span>Watch Demo</span>
-                  </div>
-                </GlassCard>
-              </button>
-            </div>
+                {/* Demo Label */}
+                <div className={`inline-flex items-center justify-center gap-2 text-xs ${step.playText} font-semibold px-3 py-1.5 rounded-full ${step.iconBg} border ${step.playBorder} border-opacity-30`}>
+                  <Play className="h-3 w-3" fill="currentColor" />
+                  <span>Watch Demo</span>
+                </div>
+              </GlassCard>
+            </button>
           </motion.div>
         ))}
       </div>
@@ -141,7 +159,7 @@ export const HowWeWorkVideo: React.FC = () => {
                 {/* Header */}
                 <div className="p-6 border-b border-white/10">
                   <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 bg-${processSteps[selectedStep].color}-500/20 rounded-full flex items-center justify-center text-${processSteps[selectedStep].color}-400`}>
+                    <div className={`w-12 h-12 ${processSteps[selectedStep].iconBg} rounded-full flex items-center justify-center ${processSteps[selectedStep].iconText}`}>
                       {processSteps[selectedStep].icon}
                     </div>
                     <div>
@@ -157,29 +175,15 @@ export const HowWeWorkVideo: React.FC = () => {
 
                 {/* Video Container */}
                 <div className="relative bg-black aspect-video">
-                  {/* Placeholder - Replace with actual video */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-sky-500/20 flex items-center justify-center">
-                        <Play className="h-10 w-10 text-sky-400" />
-                      </div>
-                      <p className="text-white/60">Video demo coming soon</p>
-                      <p className="text-white/40 text-sm mt-2">
-                        Upload your demo video to: {processSteps[selectedStep].videoPlaceholder}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Uncomment when you have videos:
                   <video
                     className="w-full h-full"
                     controls
                     autoPlay
+                    loop
                     src={processSteps[selectedStep].videoPlaceholder}
                   >
                     Your browser does not support the video tag.
                   </video>
-                  */}
                 </div>
 
                 {/* Footer */}

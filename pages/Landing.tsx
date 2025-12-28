@@ -10,6 +10,7 @@ import { GradientText } from '../components/ui/FloatingElements';
 import { BrandLogo, INDUSTRY_AGENTS } from '../constants';
 import { openCalendlyWithEmail } from '../utils/calendly';
 import { HowWeWorkVideo } from '../components/HowWeWorkVideo';
+import { BackgroundVideo } from '../components/BackgroundVideo';
 import {
   ArrowRight, Sparkles, Zap, Shield, BarChart3, MessageSquare,
   Bot, Megaphone, Play, ChevronRight, Check
