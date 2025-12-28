@@ -69,6 +69,16 @@ export const BrandLogo = ({ className = "h-32 w-32" }: { className?: string }) =
   );
 };
 
+export const BrandIcon = ({ className = "h-12 w-12" }: { className?: string }) => (
+  <img
+    src="/highshift-icon.svg"
+    alt="Highshift Media"
+    className={`shrink-0 ${className}`}
+    loading="eager"
+    decoding="async"
+  />
+);
+
 // Service Icons
 const ChatbotIcon = () => <MessageSquare className="h-10 w-10 mb-4 text-sky-400" />;
 

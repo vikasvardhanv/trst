@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronDown, User, LogOut } from 'lucide-react';
-import { BrandLogo } from '../../constants';
+import { BrandIcon } from '../../constants';
 import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
@@ -53,7 +53,7 @@ export const Navbar: React.FC = () => {
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 transition={{ type: 'spring', stiffness: 400 }}
               >
-                <BrandLogo className="h-12 w-12" />
+                <BrandIcon className="h-12 w-12" />
               </motion.div>
               <span className="text-xl font-bold text-white group-hover:text-sky-400 transition-colors">
                 Highshift

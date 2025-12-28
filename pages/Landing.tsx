@@ -50,10 +50,42 @@ const serviceHighlights = [
 
 
 
+type TechStackItem = {
+  name: string;
+  category: string;
+  accent: string;
+  mark: string;
+};
+
 // Tech Stack
-const techStack = [
-  "OpenAI", "Anthropic", "Google Gemini", "Meta Llama", "LangChain", "Pinecone", "React", "Python"
+const techStack: TechStackItem[] = [
+  { name: 'OpenAI', category: 'Foundation Models', accent: 'from-emerald-400/40 via-emerald-500/10 to-transparent', mark: 'OA' },
+  { name: 'Anthropic', category: 'Constitutional AI', accent: 'from-amber-400/40 via-amber-500/10 to-transparent', mark: 'AN' },
+  { name: 'Google Gemini', category: 'Multimodal LLMs', accent: 'from-blue-400/40 via-blue-500/10 to-transparent', mark: 'GG' },
+  { name: 'Meta Llama', category: 'Open-Source Models', accent: 'from-sky-400/40 via-sky-500/10 to-transparent', mark: 'ML' },
+  { name: 'LangChain', category: 'Agent Orchestration', accent: 'from-teal-400/40 via-teal-500/10 to-transparent', mark: 'LC' },
+  { name: 'Pinecone', category: 'Vector Database', accent: 'from-fuchsia-400/40 via-fuchsia-500/10 to-transparent', mark: 'PC' },
+  { name: 'React', category: 'Frontend Experience', accent: 'from-cyan-400/40 via-cyan-500/10 to-transparent', mark: 'RE' },
+  { name: 'Python', category: 'Automation Core', accent: 'from-yellow-300/40 via-yellow-400/10 to-transparent', mark: 'PY' },
 ];
+
+const techMarquee = [...techStack, ...techStack];
+const techMarqueeReverse = [...techStack].reverse().concat([...techStack].reverse());
+
+const TechBadge: React.FC<{ tech: TechStackItem }> = ({ tech }) => (
+  <div className="group relative flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-sm shadow-lg shadow-black/30 transition-transform duration-300 hover:-translate-y-1 hover:border-white/20">
+    <div className="relative">
+      <div className={`absolute -inset-1 rounded-xl bg-gradient-to-br ${tech.accent} opacity-70 blur-lg`} />
+      <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gray-900/80 border border-white/10 text-[10px] font-bold tracking-[0.2em] text-white/90">
+        {tech.mark}
+      </div>
+    </div>
+    <div className="text-left">
+      <div className="text-base font-semibold text-white">{tech.name}</div>
+      <div className="text-xs text-white/50">{tech.category}</div>
+    </div>
+  </div>
+);
 
 
 export const Landing: React.FC = () => {
@@ -261,15 +293,39 @@ export const Landing: React.FC = () => {
       </section>
 
       {/* Tech Stack */}
-      <section className="py-20 px-4 border-y border-white/10">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-white/40 text-sm font-semibold uppercase tracking-wider mb-8">
-            Powered by World-Class Technology
-          </p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-            {techStack.map((tech, index) => (
-              <span key={index} className="text-xl md:text-2xl font-bold text-white">{tech}</span>
-            ))}
+      <section className="relative py-24 px-4 border-y border-white/10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-sky-950/30 via-transparent to-transparent" />
+        <div className="relative max-w-7xl mx-auto">
+          <AnimatedSection className="text-center mb-12">
+            <span className="text-sky-400 text-sm font-semibold uppercase tracking-wider mb-3 block">
+              Powered by World-Class Technology
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white">
+              Built on the Best AI Stack
+            </h2>
+            <p className="text-white/60 mt-4 max-w-2xl mx-auto">
+              Foundation models, orchestration, and production-grade engineering tuned for results.
+            </p>
+          </AnimatedSection>
+
+          <div className="relative">
+            <div className="absolute -inset-x-8 top-1/2 h-24 -translate-y-1/2 bg-gradient-to-r from-transparent via-sky-500/10 to-transparent blur-2xl opacity-70" />
+            <div className="space-y-6">
+              <div className="overflow-hidden">
+                <div className="flex w-max gap-6 animate-marquee motion-reduce:animate-none motion-reduce:flex-wrap motion-reduce:w-full motion-reduce:justify-center">
+                  {techMarquee.map((tech, index) => (
+                    <TechBadge key={`${tech.name}-${index}`} tech={tech} />
+                  ))}
+                </div>
+              </div>
+              <div className="overflow-hidden">
+                <div className="flex w-max gap-6 animate-marquee-reverse motion-reduce:animate-none motion-reduce:flex-wrap motion-reduce:w-full motion-reduce:justify-center">
+                  {techMarqueeReverse.map((tech, index) => (
+                    <TechBadge key={`${tech.name}-reverse-${index}`} tech={tech} />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

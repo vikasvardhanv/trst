@@ -1,16 +1,15 @@
 import React, { memo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
-// Check for reduced motion preference and mobile
+// Check for reduced motion preference
 const useReducedMotion = () => {
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
   
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const isMobile = window.innerWidth < 768;
-    setShouldReduceMotion(mediaQuery.matches || isMobile);
+    setShouldReduceMotion(mediaQuery.matches);
     
-    const handler = (e: MediaQueryListEvent) => setShouldReduceMotion(e.matches || isMobile);
+    const handler = (e: MediaQueryListEvent) => setShouldReduceMotion(e.matches);
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
@@ -18,11 +17,25 @@ const useReducedMotion = () => {
   return shouldReduceMotion;
 };
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
+};
+
 // Floating orbs for background decoration - optimized for mobile
 export const FloatingOrbs: React.FC = memo(() => {
   const reduceMotion = useReducedMotion();
+  const isMobile = useIsMobile();
   
-  // Static version for mobile/reduced motion
+  // Static version for reduced motion
   if (reduceMotion) {
     return (
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -48,23 +61,32 @@ export const FloatingOrbs: React.FC = memo(() => {
     );
   }
 
+  const primarySize = isMobile ? 320 : 500;
+  const secondarySize = isMobile ? 240 : 400;
+  const primaryDriftX = isMobile ? [0, 40, -20, 0] : [0, 80, -40, 0];
+  const primaryDriftY = isMobile ? [0, -40, 20, 0] : [0, -80, 40, 0];
+  const secondaryDriftX = isMobile ? [0, -30, 15, 0] : [0, -60, 30, 0];
+  const secondaryDriftY = isMobile ? [0, 30, -20, 0] : [0, 60, -40, 0];
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {/* Primary orb - optimized animation */}
       <motion.div
-        className="absolute w-[500px] h-[500px] rounded-full will-change-transform"
+        className="absolute rounded-full will-change-transform"
         style={{
+          width: `${primarySize}px`,
+          height: `${primarySize}px`,
           background: 'radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 70%)',
           filter: 'blur(50px)',
           top: '10%',
           left: '10%',
         }}
         animate={{
-          x: [0, 80, -40, 0],
-          y: [0, -80, 40, 0],
+          x: primaryDriftX,
+          y: primaryDriftY,
         }}
         transition={{
-          duration: 25,
+          duration: isMobile ? 20 : 25,
           repeat: Infinity,
           ease: 'linear',
         }}
@@ -72,19 +94,21 @@ export const FloatingOrbs: React.FC = memo(() => {
 
       {/* Secondary orb */}
       <motion.div
-        className="absolute w-[400px] h-[400px] rounded-full will-change-transform"
+        className="absolute rounded-full will-change-transform"
         style={{
+          width: `${secondarySize}px`,
+          height: `${secondarySize}px`,
           background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
           filter: 'blur(50px)',
           top: '50%',
           right: '10%',
         }}
         animate={{
-          x: [0, -60, 30, 0],
-          y: [0, 60, -40, 0],
+          x: secondaryDriftX,
+          y: secondaryDriftY,
         }}
         transition={{
-          duration: 30,
+          duration: isMobile ? 24 : 30,
           repeat: Infinity,
           ease: 'linear',
         }}
@@ -123,13 +147,16 @@ GridPattern.displayName = 'GridPattern';
 // Animated particles - disabled on mobile for performance
 export const Particles: React.FC<{ count?: number }> = memo(({ count = 15 }) => {
   const reduceMotion = useReducedMotion();
+  const isMobile = useIsMobile();
   
-  // Don't render particles on mobile or reduced motion
+  // Don't render particles for reduced motion
   if (reduceMotion) return null;
+
+  const particleCount = isMobile ? Math.max(6, Math.floor(count * 0.6)) : count;
   
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {Array.from({ length: count }).map((_, i) => (
+      {Array.from({ length: particleCount }).map((_, i) => (
         <motion.div
           key={i}
           className="absolute w-1 h-1 bg-white/20 rounded-full"

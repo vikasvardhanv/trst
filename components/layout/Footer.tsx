@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BrandLogo, TikTokIcon, FacebookIcon, InstagramIcon, YoutubeIcon, XIcon, WhatsAppIcon } from '../../constants';
+import { BrandIcon, TikTokIcon, FacebookIcon, InstagramIcon, YoutubeIcon, XIcon, WhatsAppIcon } from '../../constants';
 import { Mail, Phone, MapPin, ArrowUpRight } from 'lucide-react';
 
 const footerLinks = {
@@ -46,7 +46,7 @@ export const Footer: React.FC = () => {
           {/* Brand section */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-3 mb-6">
-              <BrandLogo className="h-12 w-12" />
+              <BrandIcon className="h-12 w-12" />
               <span className="text-2xl font-bold text-white">Highshift Media</span>
             </Link>
             <p className="text-white/60 mb-6 max-w-sm leading-relaxed">
