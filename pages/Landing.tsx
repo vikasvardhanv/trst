@@ -13,7 +13,7 @@ import { HowWeWorkVideo } from '../components/HowWeWorkVideo';
 import { BackgroundVideo } from '../components/BackgroundVideo';
 import {
   ArrowRight, Sparkles, Zap, Shield, BarChart3, MessageSquare,
-  Bot, Megaphone, Play, ChevronRight, Check
+  Bot, Megaphone, Play, ChevronRight, Check, Cloud
 } from 'lucide-react';
 
 // Hero section features
@@ -45,6 +45,13 @@ const serviceHighlights = [
     description: 'Custom AI chatbots that engage customers 24/7.',
     link: '/services/chatbot',
     color: 'emerald',
+  },
+  {
+    icon: <Cloud className="h-8 w-8" />,
+    title: 'SaaS Development',
+    description: 'End-to-end SaaS product development with AI-powered features.',
+    link: '/contact',
+    color: 'orange',
   },
 ];
 

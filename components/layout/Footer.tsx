@@ -47,7 +47,7 @@ export const Footer: React.FC = () => {
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-3 mb-6">
               <BrandIcon className="h-12 w-12" />
-              <span className="text-2xl font-bold text-white">Highshift Media</span>
+              <span className="text-2xl font-bold text-white">Highshift Media LLC</span>
             </Link>
             <p className="text-white/60 mb-6 max-w-sm leading-relaxed">
               The next era of intelligence. We build AI solutions that transform businesses and create
@@ -64,6 +64,10 @@ export const Footer: React.FC = () => {
                 <Phone className="h-4 w-4" />
                 <span>+1 (630) 703-3569</span>
               </a>
+              <div className="flex items-center gap-3 text-white/60">
+                <MapPin className="h-4 w-4" />
+                <span>Chicago, IL</span>
+              </div>
             </div>
           </div>
 
@@ -142,7 +146,7 @@ export const Footer: React.FC = () => {
 
           {/* Copyright */}
           <p className="text-sm text-white/40">
-            &copy; {new Date().getFullYear()} Highshift Media. All rights reserved.
+            &copy; {new Date().getFullYear()} Highshift Media LLC. All rights reserved.
           </p>
 
           {/* Legal links */}
