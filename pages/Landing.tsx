@@ -50,7 +50,7 @@ const serviceHighlights = [
     icon: <Cloud className="h-8 w-8" />,
     title: 'SaaS Development',
     description: 'End-to-end SaaS product development with AI-powered features.',
-    link: '/contact',
+    link: '/services',
     color: 'orange',
   },
 ];
@@ -217,7 +217,7 @@ export const Landing: React.FC = () => {
             </p>
           </AnimatedSection>
 
-          <StaggerContainer className="grid md:grid-cols-3 gap-8">
+          <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {serviceHighlights.map((service, index) => (
               <StaggerItem key={index}>
                 <Link to={service.link}>

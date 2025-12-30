@@ -8,49 +8,100 @@ import { Button } from '../components/ui/Button';
 import {
   Briefcase, MapPin, Clock, DollarSign, Users, Rocket,
   Heart, Zap, TrendingUp, ArrowRight, Code, Sparkles,
-  MessageSquare, Target, Award, Globe
+  MessageSquare, Target, Award, Globe, Palette, Megaphone,
+  HeadphonesIcon, PenTool, Server, Settings
 } from 'lucide-react';
 
 const openPositions = [
   {
     title: 'Senior AI Engineer',
     department: 'Engineering',
-    location: 'Remote',
+    location: 'Remote / Chicago, IL',
     type: 'Full-time',
-    description: 'Build cutting-edge AI solutions using LLMs, LangChain, and modern ML frameworks.',
-    requirements: ['5+ years Python/ML experience', 'LLM integration experience', 'Strong system design skills'],
+    salary: '$120k - $180k',
+    description: 'Build cutting-edge AI solutions using LLMs, LangChain, and modern ML frameworks. Lead the development of AI agents and automation systems.',
+    requirements: ['5+ years Python/ML experience', 'LLM integration experience (OpenAI, Anthropic, etc.)', 'Strong system design skills', 'Experience with vector databases (Pinecone, Weaviate)'],
   },
   {
     title: 'Full Stack Developer',
     department: 'Engineering',
-    location: 'Remote',
+    location: 'Remote / Chicago, IL',
     type: 'Full-time',
-    description: 'Develop scalable web applications using React, TypeScript, Node.js, and PostgreSQL.',
-    requirements: ['3+ years full-stack experience', 'React & TypeScript', 'API design & databases'],
+    salary: '$90k - $140k',
+    description: 'Develop scalable web applications and SaaS products using React, TypeScript, Node.js, and PostgreSQL.',
+    requirements: ['3+ years full-stack experience', 'React & TypeScript proficiency', 'API design & database optimization', 'Experience with cloud platforms (AWS/GCP)'],
   },
   {
     title: 'AI Solutions Architect',
     department: 'Product',
+    location: 'Remote / Chicago, IL',
+    type: 'Full-time',
+    salary: '$130k - $170k',
+    description: 'Design and implement AI solutions for enterprise clients across healthcare, legal, real estate, and other industries.',
+    requirements: ['AI/ML architecture experience', 'Client-facing skills', 'System design expertise', 'Experience with enterprise integrations'],
+  },
+  {
+    title: 'Backend Developer (Python)',
+    department: 'Engineering',
     location: 'Remote',
     type: 'Full-time',
-    description: 'Design and implement AI solutions for enterprise clients across various industries.',
-    requirements: ['AI/ML architecture experience', 'Client-facing skills', 'System design expertise'],
+    salary: '$85k - $130k',
+    description: 'Build robust backend systems and APIs that power our AI agents and automation workflows.',
+    requirements: ['3+ years Python experience', 'FastAPI/Django expertise', 'Database design (PostgreSQL, Redis)', 'Experience with message queues'],
+  },
+  {
+    title: 'DevOps Engineer',
+    department: 'Engineering',
+    location: 'Remote',
+    type: 'Full-time',
+    salary: '$100k - $150k',
+    description: 'Manage infrastructure, CI/CD pipelines, and ensure high availability of our AI-powered services.',
+    requirements: ['AWS/GCP expertise', 'Docker & Kubernetes', 'Infrastructure as Code (Terraform)', 'Monitoring & logging systems'],
+  },
+  {
+    title: 'UI/UX Designer',
+    department: 'Design',
+    location: 'Remote',
+    type: 'Full-time',
+    salary: '$80k - $120k',
+    description: 'Design intuitive user interfaces for AI-powered applications, chatbots, and SaaS products.',
+    requirements: ['3+ years product design experience', 'Figma proficiency', 'User research experience', 'Understanding of AI/ML interfaces'],
   },
   {
     title: 'Digital Marketing Specialist',
     department: 'Marketing',
     location: 'Remote',
     type: 'Full-time',
-    description: 'Drive growth through SEO, content marketing, and social media strategies.',
-    requirements: ['3+ years digital marketing', 'SEO & content strategy', 'Analytics proficiency'],
+    salary: '$60k - $90k',
+    description: 'Drive growth through SEO, content marketing, social media strategies, and paid advertising campaigns.',
+    requirements: ['3+ years digital marketing', 'SEO & content strategy', 'Google Analytics & Ads proficiency', 'B2B marketing experience'],
   },
   {
     title: 'Sales Development Representative',
     department: 'Sales',
+    location: 'Remote / Chicago, IL',
+    type: 'Full-time',
+    salary: '$50k - $80k + Commission',
+    description: 'Generate and qualify leads for our AI automation solutions. Be the first point of contact for potential clients.',
+    requirements: ['1+ years sales experience', 'Excellent communication skills', 'Tech-savvy & self-motivated', 'CRM experience (HubSpot, Salesforce)'],
+  },
+  {
+    title: 'Customer Success Manager',
+    department: 'Customer Success',
     location: 'Remote',
     type: 'Full-time',
-    description: 'Generate and qualify leads for our AI automation solutions.',
-    requirements: ['Sales experience', 'Excellent communication', 'Tech-savvy & self-motivated'],
+    salary: '$70k - $100k',
+    description: 'Ensure client satisfaction and retention. Help customers get maximum value from our AI solutions.',
+    requirements: ['2+ years customer success experience', 'Technical aptitude', 'Excellent communication', 'Experience with SaaS products'],
+  },
+  {
+    title: 'Content Writer (AI/Tech)',
+    department: 'Marketing',
+    location: 'Remote',
+    type: 'Full-time / Contract',
+    salary: '$50k - $75k',
+    description: 'Create compelling content about AI, automation, and technology. Write blogs, case studies, and marketing copy.',
+    requirements: ['Strong writing portfolio', 'Understanding of AI/ML concepts', 'SEO knowledge', 'B2B content experience'],
   },
 ];
 
@@ -253,6 +304,10 @@ export const Careers: React.FC = () => {
                             <span className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
                               {position.type}
+                            </span>
+                            <span className="flex items-center gap-1 text-emerald-400">
+                              <DollarSign className="h-4 w-4" />
+                              {position.salary}
                             </span>
                           </div>
                         </div>
