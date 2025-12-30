@@ -13,7 +13,7 @@ import { HowWeWorkVideo } from '../components/HowWeWorkVideo';
 import { BackgroundVideo } from '../components/BackgroundVideo';
 import {
   ArrowRight, Sparkles, Zap, Shield, BarChart3, MessageSquare,
-  Bot, Megaphone, Play, ChevronRight, Check, Cloud
+  Bot, Megaphone, Play, ChevronRight, Check, Cloud, Globe
 } from 'lucide-react';
 
 // Hero section features
@@ -52,6 +52,13 @@ const serviceHighlights = [
     description: 'End-to-end SaaS product development with AI-powered features.',
     link: '/services',
     color: 'orange',
+  },
+  {
+    icon: <Globe className="h-8 w-8" />,
+    title: 'Web Development',
+    description: 'Modern, responsive websites and web applications built for performance.',
+    link: '/services',
+    color: 'cyan',
   },
 ];
 
@@ -217,11 +224,11 @@ export const Landing: React.FC = () => {
             </p>
           </AnimatedSection>
 
-          <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StaggerContainer className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
             {serviceHighlights.map((service, index) => (
               <StaggerItem key={index}>
                 <Link to={service.link}>
-                  <GlassCard className="p-8 h-full" glowColor={service.color}>
+                  <GlassCard className="p-6 h-full" glowColor={service.color}>
                     <div className={`inline-flex p-3 rounded-xl bg-${service.color}-500/20 text-${service.color}-400 mb-6`}>
                       {service.icon}
                     </div>
