@@ -7,8 +7,8 @@ import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { GradientText } from '../components/ui/FloatingElements';
-import { BrandLogo, INDUSTRY_AGENTS } from '../constants';
-import { openCalendlyWithEmail } from '../utils/calendly';
+import { BrandIcon, INDUSTRY_AGENTS } from '../constants';
+import { openCalendlySimple } from '../utils/calendly';
 import { HowWeWorkVideo } from '../components/HowWeWorkVideo';
 import { BackgroundVideo } from '../components/BackgroundVideo';
 import {
@@ -135,7 +135,7 @@ export const Landing: React.FC = () => {
               transition={{ type: 'spring', stiffness: 300 }}
             >
               <div className="absolute inset-0 bg-sky-500 blur-[80px] opacity-20" />
-              <BrandLogo className="h-32 w-32 sm:h-40 sm:w-40 relative z-10" />
+              <BrandIcon className="h-32 w-32 sm:h-40 sm:w-40 relative z-10" />
             </motion.div>
           </AnimatedSection>
 
@@ -356,7 +356,7 @@ export const Landing: React.FC = () => {
                 Let's discuss how AI can transform your business.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />} onClick={() => openCalendlyWithEmail('landing-cta')}>
+                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />} onClick={() => openCalendlySimple()}>
                   Schedule Consultation
                 </Button>
                 <Link to="/demos">
