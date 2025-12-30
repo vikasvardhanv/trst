@@ -19,9 +19,31 @@ export const BackgroundVideo: React.FC<BackgroundVideoProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
-      video.play().catch(error => {
-        console.log('Video autoplay prevented:', error);
-      });
+      // Ensure muted for mobile autoplay
+      video.muted = true;
+      video.playsInline = true;
+
+      // Set webkit attributes for older iOS
+      video.setAttribute('webkit-playsinline', 'true');
+      video.setAttribute('x5-playsinline', 'true');
+
+      const attemptPlay = () => {
+        video.play().catch(error => {
+          console.log('Video autoplay prevented:', error);
+          // Try again on user interaction
+          const handleInteraction = () => {
+            video.play().catch(console.log);
+            document.removeEventListener('touchstart', handleInteraction);
+          };
+          document.addEventListener('touchstart', handleInteraction, { once: true });
+        });
+      };
+
+      if (video.readyState >= 3) {
+        attemptPlay();
+      } else {
+        video.addEventListener('canplay', attemptPlay, { once: true });
+      }
     }
   }, []);
 
@@ -74,10 +96,35 @@ export const InlineVideo: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (autoPlay && videoRef.current) {
-      videoRef.current.play().catch(error => {
-        console.log('Video autoplay prevented:', error);
-      });
+    const video = videoRef.current;
+    if (video) {
+      // Ensure muted for mobile autoplay
+      video.muted = true;
+      video.playsInline = true;
+
+      // Set webkit attributes for older iOS
+      video.setAttribute('webkit-playsinline', 'true');
+      video.setAttribute('x5-playsinline', 'true');
+
+      if (autoPlay) {
+        const attemptPlay = () => {
+          video.play().catch(error => {
+            console.log('Video autoplay prevented:', error);
+            // Try again on user interaction
+            const handleInteraction = () => {
+              video.play().catch(console.log);
+              document.removeEventListener('touchstart', handleInteraction);
+            };
+            document.addEventListener('touchstart', handleInteraction, { once: true });
+          });
+        };
+
+        if (video.readyState >= 3) {
+          attemptPlay();
+        } else {
+          video.addEventListener('canplay', attemptPlay, { once: true });
+        }
+      }
     }
   }, [autoPlay]);
 

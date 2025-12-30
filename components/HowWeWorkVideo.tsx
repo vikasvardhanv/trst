@@ -180,6 +180,8 @@ export const HowWeWorkVideo: React.FC = () => {
                     controls
                     autoPlay
                     loop
+                    muted
+                    playsInline
                     src={processSteps[selectedStep].videoPlaceholder}
                   >
                     Your browser does not support the video tag.

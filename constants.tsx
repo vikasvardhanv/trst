@@ -18,6 +18,7 @@ export { IndustryAgentsIcon, MarketingHubIcon, ClinicIcon, ConstructionIcon, Dea
 
 export const BrandLogo = ({ className = "h-32 w-32" }: { className?: string }) => {
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
     const video = videoRef.current;
@@ -25,14 +26,37 @@ export const BrandLogo = ({ className = "h-32 w-32" }: { className?: string }) =
 
     // Ensure video loops continuously
     video.loop = true;
+    video.muted = true; // Ensure muted for mobile autoplay
+    video.playsInline = true;
 
-    // Start playing
-    const playPromise = video.play();
+    // Set webkit attribute for older iOS
+    video.setAttribute('webkit-playsinline', 'true');
+    video.setAttribute('x5-playsinline', 'true');
+    video.setAttribute('x5-video-player-type', 'h5');
 
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.log('Video autoplay prevented:', error);
-      });
+    // Function to attempt play
+    const attemptPlay = () => {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log('Video autoplay prevented:', error);
+          // Try again on user interaction
+          const handleInteraction = () => {
+            video.play().catch(console.log);
+            document.removeEventListener('touchstart', handleInteraction);
+            document.removeEventListener('click', handleInteraction);
+          };
+          document.addEventListener('touchstart', handleInteraction, { once: true });
+          document.addEventListener('click', handleInteraction, { once: true });
+        });
+      }
+    };
+
+    // Try to play when video is ready
+    if (video.readyState >= 3) {
+      attemptPlay();
+    } else {
+      video.addEventListener('canplay', attemptPlay, { once: true });
     }
 
     // Extra safeguard: restart on ended event (though loop should handle this)
@@ -50,6 +74,11 @@ export const BrandLogo = ({ className = "h-32 w-32" }: { className?: string }) =
 
   return (
     <div className={`${className} relative rounded-full overflow-hidden shadow-2xl`}>
+      {/* Fallback background for loading state */}
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-gradient-to-br from-sky-500/20 to-purple-500/20 animate-pulse" />
+      )}
+
       {/* Video */}
       <video
         ref={videoRef}
@@ -58,7 +87,10 @@ export const BrandLogo = ({ className = "h-32 w-32" }: { className?: string }) =
         muted
         playsInline
         preload="auto"
-        className="w-full h-full object-cover"
+        onLoadedData={() => setIsLoaded(true)}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        // Additional attributes for mobile compatibility
+        {...{ 'webkit-playsinline': 'true' } as React.HTMLAttributes<HTMLVideoElement>}
       >
         <source src="/videos/inline.mp4" type="video/mp4" />
       </video>
