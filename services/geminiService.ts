@@ -118,33 +118,127 @@ export async function generateBusinessPlan(answers: string[]): Promise<string> {
 
     const [industry, product, customer, goal, name] = answers;
 
+    // Enhanced prompt for gemini-2.5-flash to maintain quality while reducing cost
     const prompt = `
-        Act as an expert business consultant. Based on the following information, create a comprehensive business plan for a new company named "${name}".
+You are a senior business strategist with 20+ years of experience creating investor-ready business plans for Fortune 500 companies and successful startups. Your task is to create a comprehensive, professional business plan.
 
-        **Business Details:**
-        - **Industry/Market:** ${industry}
-        - **Primary Product/Service:** ${product}
-        - **Target Customer:** ${customer}
-        - **First-Year Goal:** ${goal}
-        - **Business Name:** ${name}
+## BUSINESS INFORMATION
+- **Company Name:** ${name}
+- **Industry/Market:** ${industry}
+- **Core Product/Service:** ${product}
+- **Target Customer Profile:** ${customer}
+- **Year 1 Goal:** ${goal}
 
-        Please structure the business plan with the following sections, providing detailed and actionable insights in each. Use markdown for formatting.
+## REQUIRED OUTPUT FORMAT
+Create a detailed business plan using the exact structure below. Each section must be thorough, specific, and actionable. Use professional business language and include concrete examples where applicable.
 
-        1.  **Executive Summary:** A brief, compelling overview of the business.
-        2.  **Company Description:** Detail the mission, vision, and legal structure.
-        3.  **Market Analysis:** Analyze the industry size, trends, and target market demographics.
-        4.  **Competitor Analysis:** Identify 2-3 potential direct and indirect competitors. Analyze their strengths and weaknesses and describe this company's competitive advantage.
-        5.  **Products & Services:** A detailed description of the offerings.
-        6.  **Marketing & Sales Strategy:** Outline how the business will attract and retain customers (e.g., online marketing, social media, sales channels).
-        7.  **Financial Projections (High-Level):** Provide a high-level overview of potential revenue streams and key startup costs to consider. Do not create a detailed spreadsheet, but give general financial guidance.
+---
+
+# Business Plan: ${name}
+
+## 1. Executive Summary
+Write a compelling 150-200 word overview that would capture an investor's attention. Include:
+- The business concept and unique value proposition
+- Target market opportunity size
+- Revenue model in one sentence
+- Key competitive advantage
+- First-year milestone
+
+## 2. Company Description
+### Mission Statement
+[One powerful sentence defining the company's purpose]
+
+### Vision Statement
+[Where the company aims to be in 5 years]
+
+### Core Values
+[3-4 guiding principles]
+
+### Legal Structure Recommendation
+[Suggest appropriate structure: LLC, S-Corp, etc. with brief reasoning]
+
+## 3. Market Analysis
+### Industry Overview
+- Current market size (estimate based on industry)
+- Growth rate and trends
+- Key industry drivers
+
+### Target Market Segmentation
+- Primary customer demographic/psychographic profile
+- Market size for target segment
+- Customer pain points this business solves
+
+### Market Trends & Opportunities
+[3 specific trends that favor this business]
+
+## 4. Competitive Analysis
+### Direct Competitors
+[Identify 2-3 likely competitors with:]
+- Their strengths
+- Their weaknesses
+- Market positioning
+
+### Competitive Advantage
+[What makes ${name} uniquely positioned to win]
+
+### Barriers to Entry
+[How the business will defend its market position]
+
+## 5. Products & Services
+### Core Offering
+[Detailed description of primary product/service]
+
+### Value Proposition
+[Why customers will choose this over alternatives]
+
+### Future Product Roadmap
+[Potential expansions or additions]
+
+## 6. Marketing & Sales Strategy
+### Brand Positioning
+[How the brand will be perceived]
+
+### Marketing Channels (prioritized)
+1. [Primary channel with specific tactics]
+2. [Secondary channel]
+3. [Tertiary channel]
+
+### Sales Process
+[How leads convert to customers]
+
+### Customer Acquisition Cost Strategy
+[How to acquire customers cost-effectively]
+
+### Retention Strategy
+[How to keep customers long-term]
+
+## 7. Financial Overview
+### Revenue Streams
+[List all ways the business will generate income]
+
+### Pricing Strategy
+[Approach to pricing with rationale]
+
+### Key Startup Costs
+[Categorized list of initial investments needed]
+
+### Break-Even Considerations
+[Factors affecting path to profitability]
+
+### Year 1 Financial Targets
+[Specific, measurable targets aligned with stated goal: ${goal}]
+
+---
+
+Remember: Be specific, actionable, and professional. Avoid generic advice. Tailor every section to this specific business.
     `;
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
-                systemInstruction: "You are an expert business consultant AI that generates detailed, professional, and actionable business plans.",
+                systemInstruction: "You are an elite business strategist known for creating exceptional business plans. Your plans are detailed, data-informed, and investor-ready. Always provide specific, actionable recommendations rather than generic advice. Write in a professional yet accessible tone.",
             }
         });
         return response.text;
