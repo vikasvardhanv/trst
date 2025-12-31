@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
 import { query } from '../config/database.js';
+import logger from '../utils/logger.js';
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -51,7 +52,12 @@ export const oauthLogin = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('OAuth login error:', error);
+    logger.auth('OAuth login failed', false, {
+      email: req.body?.email,
+      provider: req.body?.provider,
+      error: error.message,
+      code: error.code,
+    });
     res.status(500).json({
       success: false,
       message: 'An error occurred during OAuth login'
@@ -107,17 +113,16 @@ export const signup = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Signup error:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', {
-      message: error.message,
+    logger.auth('Signup failed', false, {
+      email: req.body?.email,
+      error: error.message,
       code: error.code,
-      detail: error.detail
+      detail: error.detail,
+      stack: error.stack?.split('\n').slice(0, 3).join(' | '),
     });
     res.status(500).json({
       success: false,
       message: 'An error occurred during signup',
-      // Include error details in development
       ...(process.env.NODE_ENV !== 'production' && { error: error.message })
     });
   }
@@ -174,11 +179,10 @@ export const login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
-    console.error('Error details:', {
-      message: error.message,
+    logger.auth('Login failed', false, {
+      email: req.body?.email,
+      error: error.message,
       code: error.code,
-      detail: error.detail
     });
     res.status(500).json({
       success: false,
@@ -207,7 +211,7 @@ export const getCurrentUser = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('Get user error', { error: error.message });
     res.status(500).json({
       success: false,
       message: 'An error occurred'
@@ -232,7 +236,11 @@ export const logDemoAccess = async (req, res) => {
       message: 'Demo access logged'
     });
   } catch (error) {
-    console.error('Log demo access error:', error);
+    logger.error('Log demo access error', {
+      userId: req.user?.id,
+      demoId: req.body?.demoId,
+      error: error.message,
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to log demo access'

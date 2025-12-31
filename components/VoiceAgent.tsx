@@ -134,6 +134,9 @@ export const VoiceAgent: React.FC<{ onRestart: () => void }> = ({ onRestart }) =
                     speechConfig: {
                         voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
                     },
+                    // Enable real-time transcription for both user input and AI output
+                    inputAudioTranscription: {},
+                    outputAudioTranscription: {},
                     systemInstruction: {
                         parts: [{ text: 'You are Highshift AI, an elite business consultant specializing in Artificial Intelligence automation and digital transformation. Your goal is to impress potential clients with your knowledge and helpfulness. You are professional, concise, and articulate. You can discuss Highshift Media services including: Custom Chatbots, Marketing Automation, Voice Agents, and Industry-Specific AI Solutions. If asked about technical details, explain them simply. If asked about pricing, suggest scheduling a full consultation. Your tone is confident, modern, and helpful.' }]
                     },

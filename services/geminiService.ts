@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { QUESTIONS, BUSINESS_PLAN_QUESTIONS } from '../constants';
+import { QUESTIONS } from '../constants';
 
 // Check if API key is available
 const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || '';
