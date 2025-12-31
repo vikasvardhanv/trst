@@ -104,56 +104,225 @@ export const AuthModal: React.FC = () => {
     setOauthLoading('google');
     setError('');
 
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      setOauthLoading(null);
+      setError('Google Sign-In timed out. Please try again or use email sign-in.');
+    }, 30000); // 30 second timeout
+
+    const cleanup = () => {
+      clearTimeout(timeoutId);
+      setOauthLoading(null);
+    };
+
     try {
-      // Load Google Identity Services
-      const google = (window as any).google;
-      if (!google?.accounts?.id) {
-        // If Google SDK not loaded, show error
-        setError('Google Sign-In is not available. Please try email sign-in.');
-        setOauthLoading(null);
+      // Check if client ID is configured
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        cleanup();
+        setError('Google Sign-In is not configured. Please use email sign-in.');
         return;
       }
 
-      google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        callback: async (response: any) => {
-          try {
-            // Decode JWT to get user info
-            const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      // Load Google Identity Services
+      const google = (window as any).google;
+      if (!google?.accounts?.id) {
+        cleanup();
+        setError('Google Sign-In failed to load. Please disable popup blocker or try email sign-in.');
+        return;
+      }
 
-            const result = await oauthLogin({
-              email: payload.email,
-              fullName: payload.name,
-              provider: 'google',
-              providerId: payload.sub
-            });
-
-            if (result.success) {
-              setSuccess('Signed in with Google!');
-              handleSuccess();
-            } else {
-              setError(result.message);
-            }
-          } catch (err) {
-            setError('Failed to sign in with Google');
+      // Handle the credential response
+      const handleCredentialResponse = async (response: any) => {
+        try {
+          if (!response?.credential) {
+            cleanup();
+            setError('Google Sign-In did not return credentials. Please try again.');
+            return;
           }
+
+          // Decode JWT to get user info
+          const payload = JSON.parse(atob(response.credential.split('.')[1]));
+
+          const result = await oauthLogin({
+            email: payload.email,
+            fullName: payload.name,
+            provider: 'google',
+            providerId: payload.sub
+          });
+
+          clearTimeout(timeoutId);
           setOauthLoading(null);
+
+          if (result.success) {
+            setSuccess('Signed in with Google!');
+            handleSuccess();
+          } else {
+            setError(result.message);
+          }
+        } catch (err) {
+          cleanup();
+          setError('Failed to process Google Sign-In. Please try again.');
+        }
+      };
+
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+        cancel_on_tap_outside: false
+      });
+
+      // First try One Tap prompt
+      google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed()) {
+          const reason = notification.getNotDisplayedReason();
+          console.log('Google One Tap not displayed:', reason);
+
+          // Handle specific reasons
+          if (reason === 'opt_out_or_no_session') {
+            // User not signed into Google - use popup instead
+            openGooglePopup();
+          } else if (reason === 'suppressed_by_user') {
+            cleanup();
+            setError('Google Sign-In was blocked. Please enable popups or use email sign-in.');
+          } else {
+            // Try popup as fallback
+            openGooglePopup();
+          }
+        } else if (notification.isSkippedMoment()) {
+          const reason = notification.getSkippedReason();
+          console.log('Google One Tap skipped:', reason);
+
+          if (reason === 'user_cancel') {
+            cleanup();
+            // User closed the prompt - no error needed
+          } else {
+            // Try popup as fallback
+            openGooglePopup();
+          }
+        } else if (notification.isDismissedMoment()) {
+          const reason = notification.getDismissedReason();
+          console.log('Google One Tap dismissed:', reason);
+
+          if (reason === 'cancel_called' || reason === 'credential_returned') {
+            // Normal flow - credential callback will handle it
+          } else {
+            cleanup();
+            // User dismissed without selecting account
+          }
         }
       });
 
-      google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fallback: Open popup
-          google.accounts.id.renderButton(
-            document.getElementById('google-signin-btn'),
-            { theme: 'outline', size: 'large', width: '100%' }
+      // Popup fallback function using OAuth 2.0 implicit flow
+      const openGooglePopup = () => {
+        try {
+          const redirectUri = window.location.origin;
+          const scope = 'email profile openid';
+          const responseType = 'id_token';
+          const nonce = Math.random().toString(36).substring(2, 15);
+
+          // Store nonce to verify later
+          sessionStorage.setItem('google_auth_nonce', nonce);
+
+          const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=${encodeURIComponent(clientId)}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&response_type=${responseType}` +
+            `&scope=${encodeURIComponent(scope)}` +
+            `&nonce=${nonce}` +
+            `&prompt=select_account`;
+
+          // Open popup
+          const width = 500;
+          const height = 600;
+          const left = window.screenX + (window.outerWidth - width) / 2;
+          const top = window.screenY + (window.outerHeight - height) / 2;
+
+          const popup = window.open(
+            authUrl,
+            'google-signin',
+            `width=${width},height=${height},left=${left},top=${top},popup=1`
           );
-          document.getElementById('google-signin-btn')?.click();
+
+          if (!popup || popup.closed) {
+            cleanup();
+            setError('Popup was blocked. Please allow popups for this site and try again, or use email sign-in.');
+            return;
+          }
+
+          // Poll for popup close and check for token in URL
+          const pollInterval = setInterval(() => {
+            try {
+              if (popup.closed) {
+                clearInterval(pollInterval);
+                cleanup();
+                return;
+              }
+
+              // Try to get the URL (will fail due to same-origin until redirected back)
+              const popupUrl = popup.location.href;
+              if (popupUrl && popupUrl.startsWith(redirectUri)) {
+                clearInterval(pollInterval);
+                popup.close();
+
+                // Extract id_token from URL fragment
+                const hash = popupUrl.split('#')[1];
+                if (hash) {
+                  const params = new URLSearchParams(hash);
+                  const idToken = params.get('id_token');
+
+                  if (idToken) {
+                    // Decode and process the token
+                    const payload = JSON.parse(atob(idToken.split('.')[1]));
+
+                    oauthLogin({
+                      email: payload.email,
+                      fullName: payload.name,
+                      provider: 'google',
+                      providerId: payload.sub
+                    }).then(result => {
+                      clearTimeout(timeoutId);
+                      setOauthLoading(null);
+                      if (result.success) {
+                        setSuccess('Signed in with Google!');
+                        handleSuccess();
+                      } else {
+                        setError(result.message);
+                      }
+                    });
+                  } else {
+                    cleanup();
+                    setError('Google Sign-In did not return credentials. Please try again.');
+                  }
+                } else {
+                  cleanup();
+                  setError('Google Sign-In was cancelled.');
+                }
+              }
+            } catch (e) {
+              // Cross-origin error expected until redirect - ignore
+            }
+          }, 500);
+
+          // Stop polling after timeout
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            if (!popup.closed) {
+              popup.close();
+            }
+          }, 120000); // 2 minute max for popup
+
+        } catch (popupError) {
+          console.error('Google popup error:', popupError);
+          cleanup();
+          setError('Popup was blocked. Please allow popups for this site or use email sign-in.');
         }
-      });
+      };
+
     } catch (err) {
+      console.error('Google Sign-In error:', err);
+      cleanup();
       setError('Google Sign-In failed. Please try email sign-in.');
-      setOauthLoading(null);
     }
   };
 
