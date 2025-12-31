@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Loader2, User, Bot } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Calendar } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
-import { BrandLogo } from '../constants';
+import { BrandIcon } from '../constants';
+import { openCalendlySimple } from '../utils/calendly';
 
 interface Message {
   id: string;
@@ -23,19 +24,43 @@ const sanitizeAssistantText = (text: string) => {
     .trim();
 };
 
+// Detect if message indicates booking intent
+const hasBookingIntent = (text: string) => {
+  const bookingKeywords = [
+    'book', 'schedule', 'consultation', 'meeting', 'call', 'appointment',
+    'talk to someone', 'speak with', 'get in touch', 'contact', 'demo',
+    'calendly', 'available', 'free time', 'slot', 'set up a call'
+  ];
+  const lowerText = text.toLowerCase();
+  return bookingKeywords.some(keyword => lowerText.includes(keyword));
+};
+
 export const GlobalChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi, I am the Highshift Assistant. I can help with project requirements, service details, and booking a consultation. How can I help you today?",
+      text: "Hi! I'm the Highshift Assistant. I can help with project requirements, service details, and booking a consultation. How can I help you today?",
       sender: 'bot',
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showBookingButton, setShowBookingButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleBookConsultation = () => {
+    openCalendlySimple();
+    const bookingMessage: Message = {
+      id: Date.now().toString(),
+      text: "Great! I've opened the booking calendar for you. Pick a time that works best and we'll see you there!",
+      sender: 'bot',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, bookingMessage]);
+    setShowBookingButton(false);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -94,7 +119,7 @@ export const GlobalChatbot: React.FC = () => {
         contents: contents,
         config: {
           systemInstruction: {
-            parts: [{ text: `You are the Highshift Media assistant. Your goal is to help potential clients by understanding their needs and gathering requirements for AI or software projects. Speak like a knowledgeable human consultant. Use plain text only. Do not use markdown, bullet points, numbered lists, emojis, or special symbols. Use short paragraphs and complete sentences. Ask relevant questions about industry, goals, budget, timeline, integrations, and success metrics. If they show interest, ask for their name and email or phone number so a consultant can follow up. If you cannot answer or they want a human, say you will pass the request to a senior consultant after you get contact details. Do not invent technical details. Aim to move the conversation toward a consultation booking.` }]
+            parts: [{ text: `You are the Highshift Media assistant. Your goal is to help potential clients by understanding their needs and gathering requirements for AI or software projects. Speak like a knowledgeable human consultant. Use plain text only. Do not use markdown, bullet points, numbered lists, emojis, or special symbols. Use short paragraphs and complete sentences. Ask relevant questions about industry, goals, budget, timeline, integrations, and success metrics. When they want to book a consultation, schedule a call, or talk to someone, tell them you can open the booking calendar right now. Say something like "I can open our booking calendar for you right now. Just click the Book Consultation button below." Do not invent technical details. Aim to move the conversation toward a consultation booking.` }]
           }
         }
       });
@@ -109,6 +134,11 @@ export const GlobalChatbot: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, botMessage]);
+
+      // Check if user or bot response indicates booking intent
+      if (hasBookingIntent(userMessage.text) || hasBookingIntent(text)) {
+        setShowBookingButton(true);
+      }
     } catch (error: any) {
       console.error("Chat error:", error);
       const errorMessage: Message = {
@@ -157,17 +187,26 @@ export const GlobalChatbot: React.FC = () => {
             className="fixed bottom-24 right-4 sm:right-8 z-50 w-[90vw] sm:w-[400px] h-[600px] max-h-[80vh] flex flex-col bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
           >
             {/* Header */}
-            <div className="p-4 bg-white/5 border-b border-white/10 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-sky-500/20 flex items-center justify-center border border-sky-500/30">
-                <BrandLogo className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white">Highshift Assistant</h3>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs text-white/60">Online</span>
+            <div className="p-4 bg-white/5 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-sky-500/20 flex items-center justify-center border border-sky-500/30">
+                  <BrandIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white">Highshift Assistant</h3>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs text-white/60">Online</span>
+                  </div>
                 </div>
               </div>
+              <button
+                onClick={handleBookConsultation}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/30 rounded-full text-sky-400 text-xs font-medium transition-colors"
+              >
+                <Calendar className="h-3.5 w-3.5" />
+                Book Call
+              </button>
             </div>
 
             {/* Messages Area */}
@@ -201,6 +240,26 @@ export const GlobalChatbot: React.FC = () => {
               )}
               <div ref={messagesEndRef} />
             </div>
+
+            {/* Booking Button - Shows when booking intent detected */}
+            <AnimatePresence>
+              {showBookingButton && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="px-4 py-3 bg-gradient-to-r from-sky-500/20 to-purple-500/20 border-t border-white/10"
+                >
+                  <button
+                    onClick={handleBookConsultation}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-sky-500 hover:bg-sky-400 text-white font-semibold rounded-xl transition-colors"
+                  >
+                    <Calendar className="h-5 w-5" />
+                    Book Consultation Now
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Input Area */}
             <form onSubmit={handleSendMessage} className="p-4 bg-white/5 border-t border-white/10">

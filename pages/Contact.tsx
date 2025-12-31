@@ -5,10 +5,10 @@ import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
-import { ConsultationAgent } from '../components/ConsultationAgent';
+import { openCalendlySimple } from '../utils/calendly';
 import {
   Mail, Phone, MapPin, Send, MessageSquare, Calendar,
-  Clock, CheckCircle, ArrowRight, BarChart3, Bot
+  Clock, CheckCircle, ArrowRight, BarChart3
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -68,7 +68,6 @@ export const Contact: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [showAgent, setShowAgent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,13 +140,13 @@ export const Contact: React.FC = () => {
           <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Book Consultation - Special Card */}
             <StaggerItem>
-              <button onClick={() => setShowAgent(true)} className="w-full h-full text-left">
+              <button onClick={() => openCalendlySimple()} className="w-full h-full text-left">
                 <GlassCard className="p-6 text-center h-full group border-sky-500/30 hover:border-sky-500/50 bg-gradient-to-br from-sky-500/10 to-purple-500/10">
                   <div className="inline-flex p-3 rounded-xl bg-sky-500/20 text-sky-400 mb-4 group-hover:scale-110 transition-transform">
-                    <Bot className="h-6 w-6" />
+                    <Calendar className="h-6 w-6" />
                   </div>
                   <h3 className="font-bold text-white mb-1">Book Consultation</h3>
-                  <p className="text-white/60 text-sm">AI-powered booking</p>
+                  <p className="text-white/60 text-sm">Schedule a call</p>
                 </GlassCard>
               </button>
             </StaggerItem>
@@ -168,9 +167,6 @@ export const Contact: React.FC = () => {
           </StaggerContainer>
         </div>
       </section>
-
-      {/* Consultation Agent Modal */}
-      <ConsultationAgent isOpen={showAgent} onClose={() => setShowAgent(false)} />
 
       {/* Contact Form & Info */}
       <section className="py-20 px-4">

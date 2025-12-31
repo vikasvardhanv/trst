@@ -1,14 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard } from './ui/GlassCard';
 import { MessageSquare, Workflow, Cpu, BarChart3, Play, X } from 'lucide-react';
+
+// Helper function to detect video type and get embed URL
+const getVideoInfo = (url: string) => {
+  if (!url) return { type: 'none', embedUrl: '' };
+
+  // YouTube
+  const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (youtubeMatch) {
+    return {
+      type: 'youtube',
+      embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1&rel=0&playsinline=1`
+    };
+  }
+
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeoMatch) {
+    return {
+      type: 'vimeo',
+      embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&playsinline=1`
+    };
+  }
+
+  // Direct video file (MP4, WebM, etc.)
+  if (url.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) || url.startsWith('/videos/')) {
+    return { type: 'direct', embedUrl: url };
+  }
+
+  // Default to direct for any other URL
+  return { type: 'direct', embedUrl: url };
+};
+
+// Get video URLs from environment variables with fallbacks
+const getVideoUrls = () => ({
+  discovery: import.meta.env.VITE_VIDEO_DISCOVERY || '/videos/discovery-demo.mp4',
+  strategy: import.meta.env.VITE_VIDEO_STRATEGY || '/videos/strategy-demo.mp4',
+  development: import.meta.env.VITE_VIDEO_DEVELOPMENT || '/videos/development-demo.mp4',
+  optimization: import.meta.env.VITE_VIDEO_OPTIMIZATION || '/videos/optimization-demo.mp4',
+});
+
+const videoUrls = getVideoUrls();
 
 const processSteps = [
   {
     icon: <MessageSquare className="h-6 w-6" />,
     title: "Discovery",
     description: "We analyze your workflows to identify high-impact automation opportunities.",
-    videoPlaceholder: "/videos/discovery-demo.mp4",
+    videoUrl: videoUrls.discovery,
     demoDescription: "Watch how we conduct a comprehensive business analysis",
     gradientFrom: "from-sky-500/20",
     gradientTo: "to-sky-500/5",
@@ -22,7 +63,7 @@ const processSteps = [
     icon: <Workflow className="h-6 w-6" />,
     title: "Strategy",
     description: "We design a custom AI roadmap tailored to your specific business goals.",
-    videoPlaceholder: "/videos/strategy-demo.mp4",
+    videoUrl: videoUrls.strategy,
     demoDescription: "See our AI roadmap planning process in action",
     gradientFrom: "from-purple-500/20",
     gradientTo: "to-purple-500/5",
@@ -36,7 +77,7 @@ const processSteps = [
     icon: <Cpu className="h-6 w-6" />,
     title: "Development",
     description: "Our engineers build, train, and integrate your custom AI agents.",
-    videoPlaceholder: "/videos/development-demo.mp4",
+    videoUrl: videoUrls.development,
     demoDescription: "Behind the scenes: Building an AI chatbot",
     gradientFrom: "from-emerald-500/20",
     gradientTo: "to-emerald-500/5",
@@ -50,7 +91,7 @@ const processSteps = [
     icon: <BarChart3 className="h-6 w-6" />,
     title: "Optimization",
     description: "Continuous monitoring and refinement to ensure maximum ROI.",
-    videoPlaceholder: "/videos/optimization-demo.mp4",
+    videoUrl: videoUrls.optimization,
     demoDescription: "Live dashboard: Tracking AI performance metrics",
     gradientFrom: "from-orange-500/20",
     gradientTo: "to-orange-500/5",
@@ -61,6 +102,59 @@ const processSteps = [
     playText: "text-orange-400"
   }
 ];
+
+// Video Player Component that handles different video types
+const VideoPlayer: React.FC<{ url: string }> = ({ url }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoInfo = getVideoInfo(url);
+
+  useEffect(() => {
+    if (videoInfo.type === 'direct' && videoRef.current) {
+      const video = videoRef.current;
+      video.muted = true;
+      video.playsInline = true;
+      video.setAttribute('webkit-playsinline', 'true');
+      video.setAttribute('x5-playsinline', 'true');
+      video.play().catch(console.log);
+    }
+  }, [videoInfo.type]);
+
+  if (videoInfo.type === 'youtube' || videoInfo.type === 'vimeo') {
+    return (
+      <iframe
+        className="w-full h-full"
+        src={videoInfo.embedUrl}
+        title="Video player"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+      />
+    );
+  }
+
+  if (videoInfo.type === 'direct') {
+    return (
+      <video
+        ref={videoRef}
+        className="w-full h-full"
+        controls
+        autoPlay
+        loop
+        muted
+        playsInline
+        src={videoInfo.embedUrl}
+      >
+        Your browser does not support the video tag.
+      </video>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center h-full text-white/60">
+      <p>Video not available</p>
+    </div>
+  );
+};
 
 export const HowWeWorkVideo: React.FC = () => {
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
@@ -175,17 +269,7 @@ export const HowWeWorkVideo: React.FC = () => {
 
                 {/* Video Container */}
                 <div className="relative bg-black aspect-video">
-                  <video
-                    className="w-full h-full"
-                    controls
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    src={processSteps[selectedStep].videoPlaceholder}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
+                  <VideoPlayer url={processSteps[selectedStep].videoUrl} />
                 </div>
 
                 {/* Footer */}
