@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Loader2, Calendar } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { BrandIcon } from '../constants';
-import { openCalendlySimple } from '../utils/calendly';
+import { SchedulingModal } from './SchedulingModal';
 
 interface Message {
   id: string;
@@ -37,6 +37,7 @@ const hasBookingIntent = (text: string) => {
 
 export const GlobalChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -51,10 +52,10 @@ export const GlobalChatbot: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleBookConsultation = () => {
-    openCalendlySimple();
+    setIsSchedulingOpen(true);
     const bookingMessage: Message = {
       id: Date.now().toString(),
-      text: "Great! I've opened the booking calendar for you. Pick a time that works best and we'll see you there!",
+      text: "I've opened the booking calendar for you. Select a date and time that works best, and we'll set up your consultation with Zoom meeting and calendar invite!",
       sender: 'bot',
       timestamp: new Date(),
     };
@@ -155,6 +156,13 @@ export const GlobalChatbot: React.FC = () => {
 
   return (
     <>
+      {/* Scheduling Modal */}
+      <SchedulingModal
+        isOpen={isSchedulingOpen}
+        onClose={() => setIsSchedulingOpen(false)}
+        source="chatbot"
+      />
+
       {/* Floating Toggle Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}

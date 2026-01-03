@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Layout } from '../components/layout/Layout';
@@ -8,7 +8,7 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { GradientText } from '../components/ui/FloatingElements';
 import { BrandIcon, INDUSTRY_AGENTS } from '../constants';
-import { openCalendlySimple } from '../utils/calendly';
+import { SchedulingModal } from '../components/SchedulingModal';
 import { HowWeWorkVideo } from '../components/HowWeWorkVideo';
 import { BackgroundVideo } from '../components/BackgroundVideo';
 import {
@@ -103,8 +103,15 @@ const TechBadge: React.FC<{ tech: TechStackItem }> = ({ tech }) => (
 
 
 export const Landing: React.FC = () => {
+  const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+
   return (
     <Layout>
+      <SchedulingModal
+        isOpen={isSchedulingOpen}
+        onClose={() => setIsSchedulingOpen(false)}
+        source="landing-page"
+      />
       <SEO
         title="Highshift Media | Digital Marketing Agency & AI Automation Services"
         description="Highshift Media is a premier digital marketing agency specializing in AI automation, social media marketing, content marketing, and SEO services. Best digital marketing agency for small businesses with affordable marketing solutions."
@@ -356,7 +363,7 @@ export const Landing: React.FC = () => {
                 Let's discuss how AI can transform your business.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />} onClick={() => openCalendlySimple()}>
+                <Button size="lg" icon={<ArrowRight className="h-5 w-5" />} onClick={() => setIsSchedulingOpen(true)}>
                   Schedule Consultation
                 </Button>
                 <Link to="/demos">

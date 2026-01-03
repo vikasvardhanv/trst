@@ -4,8 +4,9 @@ import { GlassCard } from './ui/GlassCard';
 import { Button } from './ui/Button';
 import {
   X, Calendar, Mail, MessageSquare, ArrowRight, Bot,
-  Clock, CheckCircle, Send, Loader2, ExternalLink
+  Clock, CheckCircle, Send, Loader2
 } from 'lucide-react';
+import { SchedulingModal } from './SchedulingModal';
 
 interface ConsultationAgentProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ type AgentStep = 'options' | 'book' | 'email' | 'success';
 export const ConsultationAgent: React.FC<ConsultationAgentProps> = ({ isOpen, onClose }) => {
   const [step, setStep] = useState<AgentStep>('options');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
   const [emailData, setEmailData] = useState({
     name: '',
     email: '',
@@ -39,13 +41,20 @@ export const ConsultationAgent: React.FC<ConsultationAgentProps> = ({ isOpen, on
   };
 
   const handleBookConsultation = () => {
-    // Open Calendly or booking link
-    window.open('https://calendly.com/highshiftmedia/30min', '_blank');
+    setIsSchedulingOpen(true);
   };
 
   if (!isOpen) return null;
 
   return (
+    <>
+      {/* Scheduling Modal */}
+      <SchedulingModal
+        isOpen={isSchedulingOpen}
+        onClose={() => setIsSchedulingOpen(false)}
+        source="consultation-agent"
+      />
+
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -103,16 +112,15 @@ export const ConsultationAgent: React.FC<ConsultationAgentProps> = ({ isOpen, on
                       <Calendar className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white mb-1 flex items-center gap-2">
+                      <h3 className="font-semibold text-white mb-1">
                         Book a Consultation
-                        <ExternalLink className="h-4 w-4 text-white/40" />
                       </h3>
                       <p className="text-sm text-white/50">
-                        Schedule a 30-min call with our AI experts
+                        Schedule a 30-min call with Zoom meeting
                       </p>
                       <div className="flex items-center gap-2 mt-2 text-xs text-sky-400">
                         <Clock className="h-3 w-3" />
-                        <span>Usually responds within 24 hours</span>
+                        <span>Instant confirmation with calendar invite</span>
                       </div>
                     </div>
                     <ArrowRight className="h-5 w-5 text-white/30 group-hover:text-white/60 transition-colors" />
@@ -256,5 +264,6 @@ export const ConsultationAgent: React.FC<ConsultationAgentProps> = ({ isOpen, on
         </motion.div>
       </motion.div>
     </AnimatePresence>
+    </>
   );
 };

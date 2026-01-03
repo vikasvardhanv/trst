@@ -4,7 +4,7 @@ import type { ChatMessage, Service, Question } from '../types';
 import { AppState } from '../types';
 import { BrandLogo, WhatsAppIcon } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
-import { openCalendly, CALENDLY_URL } from '../utils/calendly';
+import { SchedulingModal } from './SchedulingModal';
 
 interface ChatbotProps {
   service: Service;
@@ -57,6 +57,7 @@ const UserMessage: React.FC<{ text: string }> = ({ text }) => (
 
 export const Chatbot: React.FC<ChatbotProps> = ({ service, chatHistory, userAnswers, onSendMessage, isLoading, appState, onRestart, currentQuestion }) => {
   const [input, setInput] = useState('');
+  const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -96,9 +97,15 @@ A Potential Client`;
   const showOptions = appState === AppState.CHAT && currentQuestion && currentQuestion.options.length > 0;
 
   return (
+    <>
+      <SchedulingModal
+        isOpen={isSchedulingOpen}
+        onClose={() => setIsSchedulingOpen(false)}
+        source="chatbot"
+      />
     <div className="min-h-screen w-full flex items-center justify-center p-4">
       {/* Floating WhatsApp FAB */}
-      <a 
+      <a
         href="https://Wa.me/+16307033569" 
         target="_blank" 
         rel="noopener noreferrer"
@@ -146,13 +153,13 @@ A Potential Client`;
 
           {appState === AppState.BOOKING && !isLoading && (
              <div className="flex flex-col gap-4 justify-start pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                 <button 
+                 <button
                     onClick={() => {
                         // Open email client first
                         window.location.href = mailtoUrl;
-                        // Then open Calendly popup after a short delay
+                        // Then open scheduling modal after a short delay
                         setTimeout(() => {
-                            openCalendly({ source: 'chatbot' });
+                            setIsSchedulingOpen(true);
                         }, 500);
                     }}
                     className="group bg-sky-500 text-white font-bold py-4 px-8 rounded-2xl hover:bg-sky-400 transition-all duration-300 shadow-lg shadow-sky-500/20 inline-flex items-center gap-3 relative overflow-hidden w-fit"
@@ -196,5 +203,6 @@ A Potential Client`;
         )}
       </div>
     </div>
+    </>
   );
 };

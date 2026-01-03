@@ -1,74 +1,49 @@
-// Calendly integration utility
-// This provides a consistent way to open Calendly across the app
+// Scheduling utility
+// This provides a consistent way to trigger scheduling across the app
+// Note: The actual modal rendering is handled by SchedulingModal component
 
-declare global {
-  interface Window {
-    Calendly?: {
-      initPopupWidget: (options: {
-        url: string;
-        prefill?: {
-          name?: string;
-          email?: string;
-          customAnswers?: Record<string, string>;
-        };
-        utm?: {
-          utmCampaign?: string;
-          utmSource?: string;
-          utmMedium?: string;
-          utmContent?: string;
-          utmTerm?: string;
-        };
-      }) => void;
-      showPopupWidget: (url: string) => void;
-      closePopupWidget: () => void;
-    };
-  }
-}
+import { scheduleAppointment, SchedulingRequest, SchedulingResponse } from '../services/schedulingService';
 
-// Default Calendly URL
-const CALENDLY_URL = 'https://calendly.com/d/cxff-b85-5pd/schedule-ai-consultation';
+// Re-export types for convenience
+export type { SchedulingRequest, SchedulingResponse };
 
-interface CalendlyOptions {
+// Event for opening scheduling modal
+// Components can listen to this event to open the modal
+const SCHEDULING_EVENT = 'openSchedulingModal';
+
+interface SchedulingOptions {
   email?: string;
   name?: string;
   source?: string;
 }
 
+// Event payload type
+interface SchedulingEventDetail extends SchedulingOptions {}
+
 /**
- * Opens Calendly popup with optional prefilled data
+ * Dispatches an event to open the scheduling modal
+ * Components with SchedulingModal can listen for this event
  * @param options - Optional prefill data (email, name, source)
  */
-export const openCalendly = (options?: CalendlyOptions) => {
+export const openScheduling = (options?: SchedulingOptions) => {
   if (typeof window === 'undefined') return;
 
-  // Check if Calendly is loaded
-  if (window.Calendly) {
-    window.Calendly.initPopupWidget({
-      url: CALENDLY_URL,
-      prefill: {
-        email: options?.email || '',
-        name: options?.name || '',
-      },
-      utm: {
-        utmSource: options?.source || 'website',
-        utmMedium: 'popup',
-        utmCampaign: 'schedule-consultation',
-      },
-    });
-  } else {
-    // Fallback: open in new tab if Calendly widget isn't loaded
-    const url = new URL(CALENDLY_URL);
-    if (options?.email) url.searchParams.set('email', options.email);
-    if (options?.name) url.searchParams.set('name', options.name);
-    window.open(url.toString(), '_blank');
-  }
+  const event = new CustomEvent<SchedulingEventDetail>(SCHEDULING_EVENT, {
+    detail: {
+      email: options?.email || '',
+      name: options?.name || '',
+      source: options?.source || 'website',
+    },
+  });
+
+  window.dispatchEvent(event);
 };
 
 /**
- * Opens Calendly with email prompt
- * Prompts user for email before opening Calendly to ensure confirmation is sent
+ * Opens scheduling with email prompt
+ * Prompts user for email before triggering scheduling modal
  */
-export const openCalendlyWithEmail = (source?: string) => {
+export const openSchedulingWithEmail = (source?: string) => {
   if (typeof window === 'undefined') return;
 
   const email = window.prompt(
@@ -78,26 +53,48 @@ export const openCalendlyWithEmail = (source?: string) => {
 
   if (email && email.includes('@')) {
     const name = window.prompt('Enter your name (optional):', '') || '';
-    openCalendly({ email, name, source });
+    openScheduling({ email, name, source });
   } else if (email !== null) {
-    // User entered invalid email but didn't cancel
     alert('Please enter a valid email address to receive your booking confirmation.');
-    openCalendlyWithEmail(source);
+    openSchedulingWithEmail(source);
   }
-  // If email is null, user cancelled - do nothing
 };
 
 /**
- * Simple Calendly open without prefill
+ * Simple scheduling open without prefill
  */
-export const openCalendlySimple = () => {
-  if (typeof window === 'undefined') return;
-
-  if (window.Calendly) {
-    window.Calendly.initPopupWidget({ url: CALENDLY_URL });
-  } else {
-    window.open(CALENDLY_URL, '_blank');
-  }
+export const openSchedulingSimple = () => {
+  openScheduling();
 };
 
-export { CALENDLY_URL };
+/**
+ * Hook for listening to scheduling modal open events
+ * @param callback - Function to call when scheduling should open
+ * @returns Cleanup function
+ */
+export const onSchedulingOpen = (callback: (options: SchedulingOptions) => void): (() => void) => {
+  if (typeof window === 'undefined') return () => {};
+
+  const handler = (event: Event) => {
+    const customEvent = event as CustomEvent<SchedulingEventDetail>;
+    callback(customEvent.detail);
+  };
+
+  window.addEventListener(SCHEDULING_EVENT, handler);
+
+  return () => {
+    window.removeEventListener(SCHEDULING_EVENT, handler);
+  };
+};
+
+// Export the direct scheduling function for programmatic use
+export { scheduleAppointment };
+
+// Legacy exports for backward compatibility (if needed elsewhere)
+// These now use the new scheduling system
+export const openCalendly = openScheduling;
+export const openCalendlySimple = openSchedulingSimple;
+export const openCalendlyWithEmail = openSchedulingWithEmail;
+
+// Legacy constant - no longer used but kept for compatibility
+export const CALENDLY_URL = 'https://calendly.com/d/cxff-b85-5pd/schedule-ai-consultation';

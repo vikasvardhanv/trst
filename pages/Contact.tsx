@@ -5,7 +5,7 @@ import { SEO } from '../components/ui/SEO';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui/AnimatedSection';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
-import { openCalendlySimple } from '../utils/calendly';
+import { SchedulingModal } from '../components/SchedulingModal';
 import {
   Mail, Phone, MapPin, Send, MessageSquare, Calendar,
   Clock, CheckCircle, ArrowRight, BarChart3
@@ -68,6 +68,7 @@ export const Contact: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,6 +110,11 @@ export const Contact: React.FC = () => {
 
   return (
     <Layout>
+      <SchedulingModal
+        isOpen={isSchedulingOpen}
+        onClose={() => setIsSchedulingOpen(false)}
+        source="contact-page"
+      />
       <SEO
         title="Contact Us | Get a Free Consultation | Highshift Media"
         description="Contact Highshift Media for AI automation and digital marketing services. Book a free consultation to discuss your business needs. Best digital marketing agency for small businesses - get affordable marketing solutions today."
@@ -140,7 +146,7 @@ export const Contact: React.FC = () => {
           <StaggerContainer className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Book Consultation - Special Card */}
             <StaggerItem>
-              <button onClick={() => openCalendlySimple()} className="w-full h-full text-left">
+              <button onClick={() => setIsSchedulingOpen(true)} className="w-full h-full text-left">
                 <GlassCard className="p-6 text-center h-full group border-sky-500/30 hover:border-sky-500/50 bg-gradient-to-br from-sky-500/10 to-purple-500/10">
                   <div className="inline-flex p-3 rounded-xl bg-sky-500/20 text-sky-400 mb-4 group-hover:scale-110 transition-transform">
                     <Calendar className="h-6 w-6" />
