@@ -174,6 +174,7 @@ export async function checkAvailability(request: AvailabilityRequest): Promise<A
  * Get available time slots for a given date from Google Calendar
  * Calls the real availability endpoint and filters by the requested date
  * All times are in CST (America/Chicago timezone)
+ * Only returns slots from the API - booked slots will not be included
  */
 export async function getAvailableSlots(date: string): Promise<string[]> {
   try {
@@ -185,20 +186,20 @@ export async function getAvailableSlots(date: string): Promise<string[]> {
       business_hours_only: true,
     });
 
-    if (response.success && response.available_slots.length > 0) {
-      // Extract just the time strings from the available slots
+    if (response.success) {
+      // Only return slots from the API - booked slots won't be included
       return response.available_slots
         .filter(slot => slot.date === date)
         .map(slot => slot.time);
     }
 
-    // Fallback to default slots if API fails or returns empty
-    console.warn('Using fallback time slots - availability API returned no slots');
-    return getDefaultTimeSlots();
+    // API failed - return empty array (no fallback to default slots)
+    console.warn('Availability API failed:', response.error);
+    return [];
   } catch (error) {
     console.error('Error fetching available slots:', error);
-    // Fallback to default slots on error
-    return getDefaultTimeSlots();
+    // Return empty on error - no fallback to default slots
+    return [];
   }
 }
 

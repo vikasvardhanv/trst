@@ -205,7 +205,7 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
             </button>
             <div className="flex items-center gap-3">
               <img 
-                src="https://i.postimg.cc/CKRDN1gW/image.png" 
+                src="/highshift-icon.svg" 
                 alt="HighShift Media" 
                 className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl object-contain"
               />
