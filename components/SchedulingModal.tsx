@@ -155,6 +155,14 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
                 className="space-y-6"
               >
                 {/* Date Selection */}
+                {/* Timezone Notice */}
+                <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                  <p className="text-sm text-amber-300 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    All times are in CST (Central Standard Time)
+                  </p>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-sky-400" />
@@ -237,7 +245,7 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
                     </div>
                     <div className="flex items-center gap-2 text-sky-400">
                       <Clock className="h-4 w-4" />
-                      <span>{formatTime12Hour(selectedTime)}</span>
+                      <span>{formatTime12Hour(selectedTime)} CST</span>
                     </div>
                   </div>
                 </div>
@@ -335,7 +343,7 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
                     </div>
                     <div className="flex items-center gap-2 text-white/70">
                       <Clock className="h-4 w-4 text-sky-400" />
-                      <span>{formatTime12Hour(selectedTime)}</span>
+                      <span>{formatTime12Hour(selectedTime)} CST</span>
                     </div>
                     {response.zoom_link && (
                       <div className="pt-2 border-t border-white/10 mt-2">
