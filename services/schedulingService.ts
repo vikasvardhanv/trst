@@ -217,6 +217,23 @@ export function formatDate(date: Date): string {
 }
 
 /**
+ * Parse a date string (YYYY-MM-DD) into a Date object without timezone shift
+ * This prevents the "off by one day" issue when displaying dates
+ */
+export function parseDateString(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed
+}
+
+/**
+ * Format a date string for display (e.g., "Fri, Jan 3")
+ */
+export function formatDateForDisplay(dateStr: string, options?: Intl.DateTimeFormatOptions): string {
+  const date = parseDateString(dateStr);
+  return date.toLocaleDateString('en-US', options || { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+/**
  * Format time for display (12-hour format)
  */
 export function formatTime12Hour(time24: string): string {

@@ -24,15 +24,15 @@ const contactMethods = [
   {
     icon: <Phone className="h-6 w-6" />,
     title: 'Call Us',
-    value: '+1 (630) 703-3569',
-    href: 'tel:+16307033569',
+    value: '+1 (320) 361-6525',
+    href: 'tel:+13203616525',
     color: 'emerald',
   },
   {
     icon: <MessageSquare className="h-6 w-6" />,
     title: 'WhatsApp',
     value: 'Chat with us',
-    href: 'https://Wa.me/+16307033569',
+    href: 'https://Wa.me/+13203616525',
     color: 'green',
   },
 ];

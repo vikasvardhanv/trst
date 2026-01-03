@@ -57,18 +57,18 @@ export const SEO: React.FC<SEOProps> = ({
     "image": DEFAULT_IMAGE,
     "description": "Highshift Media is a premier digital marketing agency specializing in AI automation, social media marketing, content marketing, and SEO services for businesses of all sizes.",
     "email": "info@highshiftmedia.com",
-    "telephone": "+1-630-703-3569",
+    "telephone": "+1-320-361-6525",
     "sameAs": [
       "https://www.tiktok.com/@highshiftmedia",
       "https://www.facebook.com/profile.php?id=61582587125978",
       "https://www.instagram.com/highshift_media/",
       "https://www.youtube.com/@highshiftmedia",
       "https://x.com/Highshiftmedia",
-      "https://wa.me/+16307033569"
+      "https://wa.me/+13203616525"
     ],
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+1-630-703-3569",
+      "telephone": "+1-320-361-6525",
       "contactType": "customer service",
       "email": "info@highshiftmedia.com",
       "availableLanguage": ["English"]
@@ -103,7 +103,7 @@ export const SEO: React.FC<SEOProps> = ({
     "name": "Highshift Media",
     "image": DEFAULT_IMAGE,
     "url": BASE_URL,
-    "telephone": "+1-630-703-3569",
+    "telephone": "+1-320-361-6525",
     "email": "info@highshiftmedia.com",
     "priceRange": "$$",
     "address": {
@@ -227,7 +227,7 @@ export const SEO: React.FC<SEOProps> = ({
       
       {/* AI Search Optimization Meta Tags */}
       <meta name="ai-content-description" content={description} />
-      <meta name="ai-business-info" content={`Company: Highshift Media | Services: AI Agents, Chatbots, Marketing Automation, Voice AI | Contact: info@highshiftmedia.com | Phone: +1 (630) 703-3569`} />
+      <meta name="ai-business-info" content={`Company: Highshift Media | Services: AI Agents, Chatbots, Marketing Automation, Voice AI | Contact: info@highshiftmedia.com | Phone: +1 (320) 361-6525`} />
 
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />

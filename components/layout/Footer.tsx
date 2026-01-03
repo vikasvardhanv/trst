@@ -60,9 +60,9 @@ export const Footer: React.FC = () => {
                 <Mail className="h-4 w-4" />
                 <span>info@highshiftmedia.com</span>
               </a>
-              <a href="tel:+16307033569" className="flex items-center gap-3 text-white/60 hover:text-sky-400 transition-colors">
+              <a href="tel:+13203616525" className="flex items-center gap-3 text-white/60 hover:text-sky-400 transition-colors">
                 <Phone className="h-4 w-4" />
-                <span>+1 (630) 703-3569</span>
+                <span>+1 (320) 361-6525</span>
               </a>
               <div className="flex items-center gap-3 text-white/60">
                 <MapPin className="h-4 w-4" />

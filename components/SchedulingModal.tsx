@@ -10,6 +10,7 @@ import {
   getMinDate,
   getMaxDate,
   formatTime12Hour,
+  formatDateForDisplay,
   SchedulingResponse
 } from '../services/schedulingService';
 
@@ -241,7 +242,7 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-2 text-sky-400">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                      <span>{formatDateForDisplay(selectedDate, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sky-400">
                       <Clock className="h-4 w-4" />
@@ -339,7 +340,7 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2 text-white/70">
                       <Calendar className="h-4 w-4 text-sky-400" />
-                      <span>{new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                      <span>{formatDateForDisplay(selectedDate, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
                     </div>
                     <div className="flex items-center gap-2 text-white/70">
                       <Clock className="h-4 w-4 text-sky-400" />

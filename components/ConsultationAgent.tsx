@@ -148,7 +148,7 @@ export const ConsultationAgent: React.FC<ConsultationAgentProps> = ({ isOpen, on
 
                 {/* WhatsApp Option */}
                 <a
-                  href="https://wa.me/+16307033569"
+                  href="https://wa.me/+13203616525"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full p-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/20 transition-all group text-left flex"

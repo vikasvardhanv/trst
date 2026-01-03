@@ -134,7 +134,7 @@ export const ServiceSelection: React.FC<ServiceSelectionProps> = ({ onSelect }) 
     <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 sm:p-10 lg:p-16 relative">
       {/* Floating WhatsApp FAB */}
       <a 
-        href="https://Wa.me/+16307033569" 
+        href="https://Wa.me/+13203616525" 
         target="_blank" 
         rel="noopener noreferrer"
         className="fixed bottom-8 right-8 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group flex items-center gap-3"
