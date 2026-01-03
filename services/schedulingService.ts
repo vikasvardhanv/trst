@@ -20,11 +20,19 @@ export interface SchedulingRequest {
 
 export interface SchedulingResponse {
   success: boolean;
-  message: string;
-  appointment_id?: string;
-  zoom_link?: string;
-  zoom_meeting_id?: string;
-  calendar_event_id?: string;
+  message?: string;
+  appointment?: {
+    name: string;
+    email: string;
+    start_time: string;
+    service: string;
+  };
+  confirmations?: {
+    calendar?: { event_id: string; html_link: string };
+    zoom?: { join_url: string; meeting_id: string };
+    email?: { success: boolean };
+    sms?: { success: boolean };
+  };
   error?: string;
 }
 
@@ -85,12 +93,10 @@ export async function scheduleAppointment(request: SchedulingRequest): Promise<S
     const data = await response.json();
 
     return {
-      success: true,
-      message: data.message || 'Appointment scheduled successfully!',
-      appointment_id: data.appointment_id,
-      zoom_link: data.zoom_link,
-      zoom_meeting_id: data.zoom_meeting_id,
-      calendar_event_id: data.calendar_event_id,
+      success: data.success ?? true,
+      message: 'Appointment scheduled successfully!',
+      appointment: data.appointment,
+      confirmations: data.confirmations,
     };
   } catch (error: any) {
     console.error('Scheduling error:', error);
@@ -175,7 +181,7 @@ export async function getAvailableSlots(date: string): Promise<string[]> {
     const response = await checkAvailability({
       start_date: date,
       end_date: date,
-      duration_minutes: 30, // 30-minute consultation slots
+      duration_minutes: 60, // 60-minute consultation slots
       business_hours_only: true,
     });
 

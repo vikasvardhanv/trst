@@ -153,7 +153,7 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
         date: selectedDate,
         time: selectedTime,
         service: 'AI Consultation',
-        duration: 30,
+        duration: 60,
         send_email: true,
         send_sms: !!formData.phone,
       });
@@ -204,9 +204,11 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
               <X className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-3">
-              <div className="p-2 sm:p-3 rounded-xl bg-sky-500/20 border border-sky-500/30">
-                <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-sky-400" />
-              </div>
+              <img 
+                src="https://i.postimg.cc/CKRDN1gW/image.png" 
+                alt="HighShift Media" 
+                className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl object-contain"
+              />
               <div>
                 <h2 className="text-xl font-bold text-white">Book Consultation</h2>
                 <p className="text-sm text-white/50">Schedule a call with our AI experts</p>
@@ -537,10 +539,10 @@ export const SchedulingModal: React.FC<SchedulingModalProps> = ({
                       <Clock className="h-4 w-4 text-sky-400" />
                       <span>{formatTime12Hour(selectedTime)} CST</span>
                     </div>
-                    {response.zoom_link && (
+                    {response.confirmations?.zoom?.join_url && (
                       <div className="pt-2 border-t border-white/10 mt-2">
                         <a
-                          href={response.zoom_link}
+                          href={response.confirmations.zoom.join_url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sky-400 hover:text-sky-300 underline text-sm"
