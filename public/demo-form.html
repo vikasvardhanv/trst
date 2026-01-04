@@ -181,13 +181,17 @@
         .logo-icon {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            overflow: hidden;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .logo-text {
@@ -771,7 +775,9 @@
         <!-- Left: Form Card -->
         <div class="form-card">
             <div class="logo">
-                <div class="logo-icon">✨</div>
+                <div class="logo-icon">
+                    <img src="/highshift-icon.svg" alt="HighShift Media">
+                </div>
                 <span class="logo-text">HighShift Media</span>
             </div>
 

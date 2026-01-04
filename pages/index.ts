@@ -5,6 +5,7 @@ export { Marketing } from './Marketing';
 export { Demos, DemoWrapper } from './Demos';
 export { Contact } from './Contact';
 export { CaseStudies } from './CaseStudies';
+export { DemoForm } from './DemoForm';
 
 // Demo pages
 export { RestaurantDemo } from './demos/RestaurantDemo';

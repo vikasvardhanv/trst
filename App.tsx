@@ -11,6 +11,7 @@ import { CookieBanner, CookiePreferences } from './components/CookieConsent';
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
 const Services = lazy(() => import('./pages/Services').then(m => ({ default: m.Services })));
 const Agents = lazy(() => import('./pages/Agents').then(m => ({ default: m.Agents })));
+const DemoForm = lazy(() => import('./pages/DemoForm').then(m => ({ default: m.DemoForm })));
 const Marketing = lazy(() => import('./pages/Marketing').then(m => ({ default: m.Marketing })));
 const Demos = lazy(() => import('./pages/Demos').then(m => ({ default: m.Demos })));
 const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
@@ -107,6 +108,7 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/demos" element={<PageTransition><Demos /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/careers" element={<PageTransition><Careers /></PageTransition>} />
+        <Route path="/demo-form" element={<PageTransition><DemoForm /></PageTransition>} />
 
         {/* Legal pages */}
         <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
