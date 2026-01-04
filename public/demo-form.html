@@ -321,10 +321,25 @@
                     </div>
 
                     <div class="form-group">
+                        <label>What are you looking for? <span class="required">*</span></label>
+                        <select name="use_case" required
+                            style="width: 100%; padding: 14px 18px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; font-size: 1rem; cursor: pointer;">
+                            <option value="" disabled selected style="color: #718096;">Select your primary use case
+                            </option>
+                            <option value="customer_support">🎧 Customer Support Chatbot</option>
+                            <option value="appointment_scheduling">📅 Appointment Scheduling</option>
+                            <option value="lead_generation">🎯 Lead Generation & Qualification</option>
+                            <option value="product_info">📦 Product Information & FAQ</option>
+                            <option value="sales_assistant">💼 Sales Assistant</option>
+                            <option value="custom">✨ Custom / Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label>How would you like to receive your demo?</label>
                         <div class="delivery-options">
                             <div class="delivery-option">
-                                <input type="checkbox" id="delivery-sms" name="delivery" value="sms" checked>
+                                <input type="checkbox" id="delivery-sms" name="delivery" value="sms">
                                 <label for="delivery-sms">📱 SMS</label>
                             </div>
                             <div class="delivery-option">
@@ -396,6 +411,7 @@
                 phone: formData.get('phone') || null,
                 company_name: formData.get('company_name') || null,
                 website_url: formData.get('website_url') || null,
+                use_case: formData.get('use_case'),
                 delivery: []
             };
 
