@@ -612,14 +612,14 @@
             line-height: 1.5;
         }
 
-        /* Tech Stack */
-        .tech-stack {
+        /* Services Section */
+        .services-section {
             margin-top: auto;
             padding-top: 24px;
             border-top: 1px solid var(--border);
         }
 
-        .tech-stack h5 {
+        .services-section h5 {
             color: var(--text-muted);
             font-size: 0.75rem;
             font-weight: 600;
@@ -628,34 +628,46 @@
             margin-bottom: 16px;
         }
 
-        .tech-icons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
 
-        .tech-badge {
+        .service-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
+            gap: 10px;
+            padding: 12px 14px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            font-size: 0.75rem;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .service-item:hover {
+            background: rgba(102, 126, 234, 0.15);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .service-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .service-name {
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-secondary);
-            transition: all 0.3s;
+            transition: color 0.3s;
         }
 
-        .tech-badge:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: var(--primary);
+        .service-item:hover .service-name {
             color: var(--text-primary);
-        }
-
-        .tech-badge span {
-            font-size: 1rem;
         }
 
         /* Stats */
@@ -924,15 +936,33 @@
                 </div>
             </div>
 
-            <div class="tech-stack">
-                <h5>Powered by World-Class Technology</h5>
-                <div class="tech-icons">
-                    <div class="tech-badge"><span>🧠</span> OpenAI</div>
-                    <div class="tech-badge"><span>🔮</span> Anthropic</div>
-                    <div class="tech-badge"><span>✨</span> Gemini</div>
-                    <div class="tech-badge"><span>⚡</span> LangChain</div>
-                    <div class="tech-badge"><span>⚛️</span> React</div>
-                    <div class="tech-badge"><span>🐍</span> Python</div>
+            <div class="services-section">
+                <h5>Our Services</h5>
+                <div class="services-grid">
+                    <a href="https://highshiftmedia.com/services#chatbot" class="service-item">
+                        <span class="service-icon">💬</span>
+                        <span class="service-name">AI Chat Agents</span>
+                    </a>
+                    <a href="https://highshiftmedia.com/services#voice_agent" class="service-item">
+                        <span class="service-icon">🎙️</span>
+                        <span class="service-name">Voice Agents</span>
+                    </a>
+                    <a href="https://highshiftmedia.com/services#video_agent" class="service-item">
+                        <span class="service-icon">📹</span>
+                        <span class="service-name">Video Agents</span>
+                    </a>
+                    <a href="https://highshiftmedia.com/agents" class="service-item">
+                        <span class="service-icon">🏢</span>
+                        <span class="service-name">Industry Agents</span>
+                    </a>
+                    <a href="https://highshiftmedia.com/marketing" class="service-item">
+                        <span class="service-icon">📈</span>
+                        <span class="service-name">Marketing Hub</span>
+                    </a>
+                    <a href="https://highshiftmedia.com/services#automation" class="service-item">
+                        <span class="service-icon">⚡</span>
+                        <span class="service-name">Automation</span>
+                    </a>
                 </div>
             </div>
         </div>
