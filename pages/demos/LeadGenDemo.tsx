@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { LeadGenAgent } from '../../components/agents/LeadGenAgent';
 import { motion } from 'framer-motion';
-import { Target, Sparkles, Zap, Globe, ArrowLeft } from 'lucide-react';
+import { Target, ArrowLeft } from 'lucide-react';
 
 export const LeadGenDemo: React.FC = () => {
   const navigate = useNavigate();
@@ -27,42 +27,19 @@ export const LeadGenDemo: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-8"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/30 mb-6">
               <Target className="h-4 w-4 text-violet-400" />
               <span className="text-sm text-violet-300">AI Lead Generation</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
-              Google Maps Lead Scraper
+              AI Lead Generation Assistant
             </h1>
             <p className="text-lg text-white/60 max-w-2xl mx-auto">
-              Instantly find and extract qualified business leads from Google Maps. 
+              Chat with our AI to find, qualify, and export business leads. 
               Perfect for sales teams, agencies, and marketers.
             </p>
-          </motion.div>
-
-          {/* Features Grid */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
-          >
-            {[
-              { icon: <Sparkles className="w-5 h-5" />, label: 'AI-Powered', color: 'violet' },
-              { icon: <Globe className="w-5 h-5" />, label: 'Any Location', color: 'blue' },
-              { icon: <Zap className="w-5 h-5" />, label: 'Real-time', color: 'yellow' },
-              { icon: <Target className="w-5 h-5" />, label: 'Qualified Leads', color: 'green' },
-            ].map((feature, i) => (
-              <div 
-                key={i}
-                className={`flex items-center gap-2 justify-center p-3 rounded-xl bg-${feature.color}-500/10 border border-${feature.color}-500/20`}
-              >
-                <span className={`text-${feature.color}-400`}>{feature.icon}</span>
-                <span className="text-white/80 text-sm font-medium">{feature.label}</span>
-              </div>
-            ))}
           </motion.div>
 
           {/* Main Agent Component */}
@@ -91,8 +68,8 @@ export const LeadGenDemo: React.FC = () => {
                   <span className="text-violet-400 font-bold">1</span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-white">Enter Search</h4>
-                  <p className="text-sm text-white/60">Choose business type and location</p>
+                  <h4 className="font-medium text-white">Chat with AI</h4>
+                  <p className="text-sm text-white/60">Tell the AI what industry you're targeting</p>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -100,8 +77,8 @@ export const LeadGenDemo: React.FC = () => {
                   <span className="text-violet-400 font-bold">2</span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-white">AI Scrapes</h4>
-                  <p className="text-sm text-white/60">Our AI extracts data from Google Maps</p>
+                  <h4 className="font-medium text-white">Get Leads</h4>
+                  <p className="text-sm text-white/60">AI finds and scores qualified leads</p>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -109,8 +86,8 @@ export const LeadGenDemo: React.FC = () => {
                   <span className="text-violet-400 font-bold">3</span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-white">Export Leads</h4>
-                  <p className="text-sm text-white/60">Download as CSV for your CRM</p>
+                  <h4 className="font-medium text-white">Export & Outreach</h4>
+                  <p className="text-sm text-white/60">Download CSV or create email campaigns</p>
                 </div>
               </div>
             </div>

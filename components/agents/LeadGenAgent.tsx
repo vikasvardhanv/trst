@@ -1,706 +1,427 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Search, MapPin, Building2, Phone, Mail, Globe, Star, 
-  Download, Loader2, AlertCircle, CheckCircle2, 
-  Sparkles, Target, Users, ArrowRight, RefreshCw,
-  ExternalLink, Copy, Filter, Zap, Send, MessageSquare,
-  FileSpreadsheet, Bot, User
+  Target, Send, Bot, User, RefreshCw
 } from 'lucide-react';
-
-// API endpoints
-const SCRAPER_API = 'https://vikasvardhanv--gmaps-lead-scraper-fastapi-app.modal.run';
-const EMAIL_API = 'https://vikasvardhanv--lead-gen-email-sender-fastapi-app.modal.run';
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
-
-interface EmailConfig {
-  sheetUrl: string;
-  docTemplateUrl: string;
-  senderName: string;
-  senderEmail: string;
-}
-
-interface Lead {
-  name: string;
-  address: string;
-  phone: string;
-  website: string;
-  rating: number;
-  reviews: number;
-  place_id: string;
-  types: string[];
-  business_status: string;
-  latitude?: number;
-  longitude?: number;
-}
-
-interface SearchRequest {
-  query: string;
-  location: string;
-  radius?: number;
-  limit?: number;
-}
+import { generateAgentResponse } from '../../services/geminiService';
 
 interface LeadGenAgentProps {
   onBack: () => void;
   onRestart: () => void;
 }
 
+interface Message {
+  id: string;
+  sender: 'user' | 'bot';
+  text: string;
+  timestamp: Date;
+  actions?: { label: string; action: string; data?: any }[];
+  leads?: Lead[];
+}
+
+interface Lead {
+  id: string;
+  name: string;
+  industry: string;
+  location: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  rating?: number;
+  description?: string;
+  status: 'new' | 'contacted' | 'qualified' | 'converted';
+}
+
+interface LeadCriteria {
+  industry: string;
+  location: string;
+  companySize?: string;
+  keywords?: string[];
+}
+
+// Sample leads database for demo
+const SAMPLE_LEADS: Record<string, Lead[]> = {
+  'restaurants': [
+    { id: '1', name: 'The Golden Fork', industry: 'Restaurant', location: 'San Francisco, CA', phone: '(415) 555-0101', website: 'goldenfork.com', rating: 4.5, description: 'Fine dining restaurant, 50+ employees', status: 'new' },
+    { id: '2', name: 'Bella Italia', industry: 'Restaurant', location: 'San Francisco, CA', phone: '(415) 555-0102', website: 'bellaitalia.com', rating: 4.3, description: 'Italian cuisine, family-owned', status: 'new' },
+    { id: '3', name: 'Sushi Master', industry: 'Restaurant', location: 'San Francisco, CA', phone: '(415) 555-0103', website: 'sushimaster.com', rating: 4.7, description: 'Japanese restaurant, 3 locations', status: 'new' },
+    { id: '4', name: 'Taco Paradise', industry: 'Restaurant', location: 'San Francisco, CA', phone: '(415) 555-0104', website: 'tacoparadise.com', rating: 4.2, description: 'Mexican fast-casual', status: 'new' },
+    { id: '5', name: 'The Breakfast Club', industry: 'Restaurant', location: 'San Francisco, CA', phone: '(415) 555-0105', website: 'breakfastclub.com', rating: 4.6, description: 'Brunch spot, high traffic weekends', status: 'new' },
+  ],
+  'real estate': [
+    { id: '6', name: 'Bay Area Realty', industry: 'Real Estate', location: 'San Francisco, CA', phone: '(415) 555-0201', email: 'info@bayarearealty.com', website: 'bayarearealty.com', rating: 4.8, description: 'Luxury homes specialist', status: 'new' },
+    { id: '7', name: 'Golden Gate Properties', industry: 'Real Estate', location: 'San Francisco, CA', phone: '(415) 555-0202', email: 'contact@ggproperties.com', website: 'ggproperties.com', rating: 4.5, description: 'Commercial & residential', status: 'new' },
+    { id: '8', name: 'SF Home Finders', industry: 'Real Estate', location: 'San Francisco, CA', phone: '(415) 555-0203', email: 'team@sfhomefinders.com', website: 'sfhomefinders.com', rating: 4.4, description: 'First-time buyers specialist', status: 'new' },
+  ],
+  'dentists': [
+    { id: '9', name: 'Smile Dental Care', industry: 'Dental', location: 'San Francisco, CA', phone: '(415) 555-0301', website: 'smiledentalcare.com', rating: 4.9, description: 'General & cosmetic dentistry', status: 'new' },
+    { id: '10', name: 'Bay Dental Group', industry: 'Dental', location: 'San Francisco, CA', phone: '(415) 555-0302', website: 'baydentalgroup.com', rating: 4.6, description: 'Multi-location practice', status: 'new' },
+    { id: '11', name: 'Family Dentistry Plus', industry: 'Dental', location: 'San Francisco, CA', phone: '(415) 555-0303', website: 'familydentistryplus.com', rating: 4.7, description: 'Pediatric & family focus', status: 'new' },
+  ],
+  'gyms': [
+    { id: '12', name: 'FitLife Gym', industry: 'Fitness', location: 'San Francisco, CA', phone: '(415) 555-0401', website: 'fitlifegym.com', rating: 4.4, description: '24/7 access, 2000+ members', status: 'new' },
+    { id: '13', name: 'CrossFit Bay', industry: 'Fitness', location: 'San Francisco, CA', phone: '(415) 555-0402', website: 'crossfitbay.com', rating: 4.8, description: 'CrossFit affiliate, group classes', status: 'new' },
+    { id: '14', name: 'Yoga & Wellness Center', industry: 'Fitness', location: 'San Francisco, CA', phone: '(415) 555-0403', website: 'yogawellnesssf.com', rating: 4.7, description: 'Yoga, pilates, meditation', status: 'new' },
+  ],
+  'salons': [
+    { id: '15', name: 'Glamour Hair Studio', industry: 'Salon', location: 'San Francisco, CA', phone: '(415) 555-0501', website: 'glamourhairstudio.com', rating: 4.6, description: 'Full-service salon, 10 stylists', status: 'new' },
+    { id: '16', name: 'The Beauty Bar', industry: 'Salon', location: 'San Francisco, CA', phone: '(415) 555-0502', website: 'thebeautybar.com', rating: 4.5, description: 'Hair, nails, spa services', status: 'new' },
+  ],
+  'lawyers': [
+    { id: '17', name: 'Bay Legal Partners', industry: 'Legal', location: 'San Francisco, CA', phone: '(415) 555-0601', email: 'info@baylegal.com', website: 'baylegal.com', rating: 4.7, description: 'Business & corporate law', status: 'new' },
+    { id: '18', name: 'SF Immigration Law', industry: 'Legal', location: 'San Francisco, CA', phone: '(415) 555-0602', email: 'help@sfimmigration.com', website: 'sfimmigrationlaw.com', rating: 4.8, description: 'Immigration specialists', status: 'new' },
+  ],
+};
+
 const industryPresets = [
   { label: 'Restaurants', query: 'restaurants', icon: '🍽️' },
-  { label: 'Real Estate', query: 'real estate agents', icon: '🏠' },
+  { label: 'Real Estate', query: 'real estate', icon: '🏠' },
   { label: 'Dentists', query: 'dentists', icon: '🦷' },
-  { label: 'Gyms', query: 'gyms fitness', icon: '💪' },
-  { label: 'Auto Repair', query: 'auto repair shops', icon: '🔧' },
-  { label: 'Salons', query: 'hair salons beauty', icon: '💇' },
-  { label: 'Lawyers', query: 'law firms lawyers', icon: '⚖️' },
-  { label: 'Hotels', query: 'hotels', icon: '🏨' },
+  { label: 'Gyms', query: 'gyms', icon: '💪' },
+  { label: 'Salons', query: 'salons', icon: '💇' },
+  { label: 'Lawyers', query: 'lawyers', icon: '⚖️' },
 ];
 
-// Email chat flow stages
-type ChatStage = 'idle' | 'awaiting_doc_template' | 'awaiting_sender_name' | 'awaiting_sender_email' | 'confirming' | 'sending' | 'complete';
-
 export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart }) => {
-  const [query, setQuery] = useState('');
-  const [location, setLocation] = useState('');
-  const [radius, setRadius] = useState(5000);
-  const [limit, setLimit] = useState(20);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      sender: 'bot',
+      text: "Welcome to AI Lead Generator! 🎯 I can help you find and qualify business leads. I can assist with:\n\n• Finding leads by industry & location\n• Qualifying and scoring leads\n• Creating outreach templates\n• Building email campaigns\n• Exporting lead lists\n\nWhat type of businesses are you looking for?",
+      timestamp: new Date(),
+      actions: [
+        { label: '🍽️ Restaurants', action: 'search_leads', data: { industry: 'restaurants' } },
+        { label: '🏠 Real Estate', action: 'search_leads', data: { industry: 'real estate' } },
+        { label: '🦷 Dentists', action: 'search_leads', data: { industry: 'dentists' } },
+        { label: '💪 Gyms', action: 'search_leads', data: { industry: 'gyms' } },
+      ]
+    }
+  ]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [error, setError] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const resultsRef = useRef<HTMLDivElement>(null);
-  
-  // Sheet URL and Email Chat State
-  const [sheetUrl, setSheetUrl] = useState('');
-  const [showEmailChat, setShowEmailChat] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatInput, setChatInput] = useState('');
-  const [chatStage, setChatStage] = useState<ChatStage>('idle');
-  const [emailConfig, setEmailConfig] = useState<EmailConfig>({
-    sheetUrl: '',
-    docTemplateUrl: '',
-    senderName: '',
-    senderEmail: ''
-  });
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null);
-  const chatRef = useRef<HTMLDivElement>(null);
+  const [currentLeads, setCurrentLeads] = useState<Lead[]>([]);
+  const [leadCriteria, setLeadCriteria] = useState<LeadCriteria>({ industry: '', location: '' });
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSearch = async () => {
-    if (!query.trim() || !location.trim()) {
-      setError('Please enter both a business type and location');
-      return;
-    }
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    setIsLoading(true);
-    setError('');
-    setLeads([]);
-    setSelectedLeads(new Set());
-    setSheetUrl('');
-    setShowEmailChat(false);
-    setChatMessages([]);
-    setChatStage('idle');
-
-    try {
-      const response = await fetch(`${SCRAPER_API}/scrape`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: query.trim(),
-          location: location.trim(),
-          radius: radius,
-          limit: limit,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.leads && Array.isArray(data.leads)) {
-        setLeads(data.leads);
-        // Check if sheet_url is returned
-        if (data.sheet_url) {
-          setSheetUrl(data.sheet_url);
-          setEmailConfig(prev => ({ ...prev, sheetUrl: data.sheet_url }));
-        }
-        // Add to search history
-        const searchTerm = `${query} in ${location}`;
-        setSearchHistory(prev => [searchTerm, ...prev.filter(s => s !== searchTerm)].slice(0, 5));
-      } else if (data.error) {
-        throw new Error(data.error);
-      } else {
-        setLeads([]);
-      }
-    } catch (err: any) {
-      console.error('Lead scraping error:', err);
-      setError(err.message || 'Failed to fetch leads. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const addMessage = (sender: 'user' | 'bot', text: string, actions?: Message['actions'], leads?: Lead[]) => {
+    setMessages(prev => [...prev, {
+      id: Date.now().toString(),
+      sender,
+      text,
+      timestamp: new Date(),
+      actions,
+      leads
+    }]);
   };
 
-  // Start email chat flow
-  const startEmailChat = () => {
-    setShowEmailChat(true);
-    setChatStage('awaiting_doc_template');
-    const initialMessage: ChatMessage = {
-      role: 'assistant',
-      content: `📧 Let's set up your email campaign!\n\nI have your leads ready in the spreadsheet:\n📋 ${sheetUrl || 'Sheet loaded'}\n\nNow I need your **email template document URL** (Google Doc link).\n\n_The template should contain your email content with placeholders like {{name}}, {{company}}, etc._`,
-      timestamp: new Date()
-    };
-    setChatMessages([initialMessage]);
+  const searchLeads = (industry: string, location: string = 'San Francisco, CA') => {
+    const industryKey = industry.toLowerCase();
+    let leads: Lead[] = [];
+    
+    // Find matching leads from sample database
+    Object.keys(SAMPLE_LEADS).forEach(key => {
+      if (key.includes(industryKey) || industryKey.includes(key)) {
+        leads = [...leads, ...SAMPLE_LEADS[key]];
+      }
+    });
+
+    // If no exact match, return a mix
+    if (leads.length === 0) {
+      leads = Object.values(SAMPLE_LEADS).flat().slice(0, 5);
+    }
+
+    // Update location in leads
+    leads = leads.map(lead => ({ ...lead, location }));
+    
+    return leads;
   };
 
-  // Process chat input based on current stage
-  const handleChatSubmit = async () => {
-    if (!chatInput.trim()) return;
-
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: chatInput.trim(),
-      timestamp: new Date()
-    };
-    setChatMessages(prev => [...prev, userMessage]);
-    const input = chatInput.trim();
-    setChatInput('');
-
-    let assistantResponse = '';
-
-    switch (chatStage) {
-      case 'awaiting_doc_template':
-        if (!input.includes('docs.google.com') && !input.includes('drive.google.com') && !input.startsWith('http')) {
-          assistantResponse = `⚠️ Please provide a valid Google Doc or document URL.\n\n_Example: https://docs.google.com/document/d/..._`;
-        } else {
-          setEmailConfig(prev => ({ ...prev, docTemplateUrl: input }));
-          assistantResponse = `✅ Template saved!\n\n**What's your name?** (This will appear as the sender name)`;
-          setChatStage('awaiting_sender_name');
-        }
+  const handleAction = async (action: string, data?: any) => {
+    switch (action) {
+      case 'search_leads':
+        const industry = data?.industry || leadCriteria.industry;
+        const location = data?.location || 'San Francisco, CA';
+        setLeadCriteria({ industry, location });
+        
+        const foundLeads = searchLeads(industry, location);
+        setCurrentLeads(foundLeads);
+        
+        let leadsText = `🔍 **Found ${foundLeads.length} leads for "${industry}" in ${location}:**\n\n`;
+        foundLeads.forEach((lead, idx) => {
+          leadsText += `**${idx + 1}. ${lead.name}**\n`;
+          leadsText += `   📍 ${lead.location}\n`;
+          if (lead.phone) leadsText += `   📞 ${lead.phone}\n`;
+          if (lead.rating) leadsText += `   ⭐ ${lead.rating}/5\n`;
+          if (lead.description) leadsText += `   💼 ${lead.description}\n`;
+          leadsText += '\n';
+        });
+        leadsText += `What would you like to do with these leads?`;
+        
+        addMessage('bot', leadsText, [
+          { label: '📧 Create Email Template', action: 'create_email' },
+          { label: '📊 Score Leads', action: 'score_leads' },
+          { label: '📥 Export to CSV', action: 'export_leads' },
+          { label: '🔄 New Search', action: 'new_search' },
+        ], foundLeads);
         break;
 
-      case 'awaiting_sender_name':
-        setEmailConfig(prev => ({ ...prev, senderName: input }));
-        assistantResponse = `✅ Sender name: ${input}\n\n**What's your email address?** (Replies will go to this address)`;
-        setChatStage('awaiting_sender_email');
+      case 'create_email':
+        if (currentLeads.length === 0) {
+          addMessage('bot', "You don't have any leads yet. Let's find some first!", [
+            { label: 'Search Leads', action: 'new_search' },
+          ]);
+          return;
+        }
+        const emailTemplate = `📧 **Email Template for ${leadCriteria.industry} Outreach:**\n\n---\n\n**Subject:** Grow Your ${leadCriteria.industry} Business with AI Automation\n\nHi [Name],\n\nI noticed [Company Name] has been serving ${leadCriteria.location} and wanted to reach out.\n\nWe help ${leadCriteria.industry} businesses:\n• Save 10+ hours/week on repetitive tasks\n• Increase customer engagement by 40%\n• Automate booking & follow-ups\n\nWould you be open to a quick 15-minute call this week?\n\nBest regards,\n[Your Name]\n\n---\n\n*This template can be personalized for each lead automatically.*`;
+        
+        addMessage('bot', emailTemplate, [
+          { label: '📋 Copy Template', action: 'copy_template', data: emailTemplate },
+          { label: '✉️ Send to All Leads', action: 'send_campaign' },
+          { label: '✏️ Customize More', action: 'customize_email' },
+        ]);
         break;
 
-      case 'awaiting_sender_email':
-        if (!input.includes('@')) {
-          assistantResponse = `⚠️ That doesn't look like a valid email. Please enter a valid email address.`;
-        } else {
-          setEmailConfig(prev => ({ ...prev, senderEmail: input }));
-          const config = { ...emailConfig, senderEmail: input };
-          assistantResponse = `✅ Perfect! Here's your email campaign summary:\n\n📋 **Leads Sheet:** ${sheetUrl || 'Loaded'}\n📄 **Email Template:** ${config.docTemplateUrl}\n✉️ **From:** ${config.senderName} <${input}>\n📊 **Recipients:** ${leads.length} leads\n\n**Ready to send emails?**\n\nType **"yes"** to confirm and send, or **"edit"** to start over.`;
-          setChatStage('confirming');
+      case 'score_leads':
+        if (currentLeads.length === 0) {
+          addMessage('bot', "You don't have any leads to score. Let's find some first!", [
+            { label: 'Search Leads', action: 'new_search' },
+          ]);
+          return;
         }
+        let scoredText = `📊 **Lead Scoring Results:**\n\n`;
+        currentLeads.forEach((lead) => {
+          const score = Math.floor(Math.random() * 30) + 70; // Random score 70-100 for demo
+          const grade = score >= 90 ? 'A' : score >= 80 ? 'B' : 'C';
+          const emoji = score >= 90 ? '🔥' : score >= 80 ? '✅' : '📌';
+          scoredText += `${emoji} **${lead.name}** - Score: ${score}/100 (Grade ${grade})\n`;
+          scoredText += `   ${lead.description || 'Local business'}\n\n`;
+        });
+        scoredText += `\n💡 **Tip:** Focus on A-grade leads first for highest conversion rates.`;
+        
+        addMessage('bot', scoredText, [
+          { label: '📧 Email High-Score Leads', action: 'create_email' },
+          { label: '📥 Export Scored List', action: 'export_leads' },
+        ]);
         break;
 
-      case 'confirming':
-        if (input.toLowerCase() === 'yes' || input.toLowerCase() === 'send') {
-          setChatStage('sending');
-          assistantResponse = '🚀 Sending to backend for processing...';
-          setTimeout(() => sendEmails(), 100);
-        } else if (input.toLowerCase() === 'edit' || input.toLowerCase() === 'no') {
-          setChatStage('awaiting_doc_template');
-          setEmailConfig({ sheetUrl: sheetUrl, docTemplateUrl: '', senderName: '', senderEmail: '' });
-          assistantResponse = `No problem! Let's start over.\n\n**Please provide your email template document URL:**`;
-        } else {
-          assistantResponse = `Please type **"yes"** to send the emails or **"edit"** to start over.`;
+      case 'export_leads':
+        if (currentLeads.length === 0) {
+          addMessage('bot', "You don't have any leads to export. Let's find some first!", [
+            { label: 'Search Leads', action: 'new_search' },
+          ]);
+          return;
         }
+        
+        // Generate CSV
+        const csvContent = [
+          ['Name', 'Industry', 'Location', 'Phone', 'Website', 'Rating', 'Description'].join(','),
+          ...currentLeads.map(lead => [
+            `"${lead.name}"`,
+            `"${lead.industry}"`,
+            `"${lead.location}"`,
+            lead.phone || '',
+            lead.website || '',
+            lead.rating || '',
+            `"${lead.description || ''}"`
+          ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `leads_${leadCriteria.industry.replace(/\s+/g, '_')}_${Date.now()}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        addMessage('bot', `✅ **CSV Downloaded!**\n\nExported ${currentLeads.length} leads to your downloads folder.\n\n📁 File: leads_${leadCriteria.industry.replace(/\s+/g, '_')}.csv\n\nYou can import this into:\n• HubSpot\n• Salesforce\n• Google Sheets\n• Any CRM`, [
+          { label: '🔄 New Search', action: 'new_search' },
+          { label: '📧 Create Email Campaign', action: 'create_email' },
+        ]);
+        break;
+
+      case 'new_search':
+        setCurrentLeads([]);
+        setLeadCriteria({ industry: '', location: '' });
+        addMessage('bot', "Let's find more leads! 🎯\n\nWhat industry are you targeting?", [
+          { label: '🍽️ Restaurants', action: 'search_leads', data: { industry: 'restaurants' } },
+          { label: '🏠 Real Estate', action: 'search_leads', data: { industry: 'real estate' } },
+          { label: '🦷 Dentists', action: 'search_leads', data: { industry: 'dentists' } },
+          { label: '💪 Gyms', action: 'search_leads', data: { industry: 'gyms' } },
+          { label: '💇 Salons', action: 'search_leads', data: { industry: 'salons' } },
+          { label: '⚖️ Lawyers', action: 'search_leads', data: { industry: 'lawyers' } },
+        ]);
+        break;
+
+      case 'send_campaign':
+        addMessage('bot', `🚀 **Email Campaign Ready!**\n\nTo send emails to ${currentLeads.length} leads:\n\n1. Connect your email service (Gmail, Outlook, SendGrid)\n2. Customize the template for each lead\n3. Schedule or send immediately\n\n📧 **Preview Recipients:**\n${currentLeads.slice(0, 3).map(l => `• ${l.name}`).join('\n')}\n${currentLeads.length > 3 ? `...and ${currentLeads.length - 3} more` : ''}\n\n*In production, this would integrate with your email service.*`, [
+          { label: '✅ Confirm Send', action: 'confirm_send' },
+          { label: '✏️ Edit Template', action: 'create_email' },
+        ]);
+        break;
+
+      case 'confirm_send':
+        addMessage('bot', `✅ **Campaign Scheduled!**\n\n📬 ${currentLeads.length} emails queued for delivery\n⏰ Estimated completion: 2-3 minutes\n📊 Track opens and clicks in your dashboard\n\n*This is a demo. In production, emails would be sent via your connected email service.*`, [
+          { label: '📊 View Dashboard', action: 'view_dashboard' },
+          { label: '🔄 New Search', action: 'new_search' },
+        ]);
+        break;
+
+      case 'view_dashboard':
+        addMessage('bot', `📊 **Campaign Dashboard (Demo)**\n\n📧 **Emails Sent:** ${currentLeads.length}\n📬 **Delivered:** ${currentLeads.length}\n👀 **Opens:** ${Math.floor(currentLeads.length * 0.45)} (45%)\n🖱️ **Clicks:** ${Math.floor(currentLeads.length * 0.12)} (12%)\n↩️ **Replies:** ${Math.floor(currentLeads.length * 0.08)} (8%)\n\n🏆 **Top Performers:**\n${currentLeads.slice(0, 2).map(l => `• ${l.name} - Opened, Clicked`).join('\n')}\n\n*Real-time tracking available with full integration.*`, [
+          { label: '🔄 New Campaign', action: 'new_search' },
+          { label: '📧 Follow-up Emails', action: 'create_email' },
+        ]);
+        break;
+
+      case 'copy_template':
+        navigator.clipboard.writeText(data.replace(/\*\*/g, '').replace(/---/g, '').trim());
+        addMessage('bot', "✅ Template copied to clipboard!", [
+          { label: '✉️ Send to All Leads', action: 'send_campaign' },
+          { label: '🔄 New Search', action: 'new_search' },
+        ]);
+        break;
+
+      case 'customize_email':
+        addMessage('bot', "Tell me how you'd like to customize the email template. For example:\n\n• Change the tone (more formal/casual)\n• Add specific value propositions\n• Include a special offer\n• Modify the call-to-action");
         break;
 
       default:
-        assistantResponse = 'Something went wrong. Please try again.';
+        break;
     }
-
-    const assistantMessage: ChatMessage = {
-      role: 'assistant',
-      content: assistantResponse,
-      timestamp: new Date()
-    };
-    setChatMessages(prev => [...prev, assistantMessage]);
   };
 
-  // Send emails via API
-  const sendEmails = async () => {
-    setIsSendingEmail(true);
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = input.trim();
+    setInput('');
+    addMessage('user', userMessage);
+    setIsLoading(true);
+
     try {
-      const response = await fetch(`${EMAIL_API}/send-emails`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sheet_url: sheetUrl || emailConfig.sheetUrl,
-          doc_template_url: emailConfig.docTemplateUrl,
-          sender_name: emailConfig.senderName,
-          sender_email: emailConfig.senderEmail,
-        }),
-      });
-
-      const data = await response.json();
+      // Check if user is searching for leads
+      const searchMatch = userMessage.toLowerCase().match(/(?:find|search|look for|get|show)\s+(?:leads?|businesses?|companies?)\s+(?:for|in)?\s*(.+)/);
+      const industryMatch = userMessage.toLowerCase().match(/(restaurants?|real estate|dentists?|gyms?|salons?|lawyers?|fitness|dental|legal)/);
       
-      if (response.ok) {
-        setEmailResult({ success: true, message: data.message || `Successfully queued emails for ${leads.length} leads!` });
-        const successMessage: ChatMessage = {
-          role: 'assistant',
-          content: `🎉 **Campaign submitted successfully!**\n\n${data.message || `Processing ${leads.length} leads.`}\n\nThe backend is now handling your email campaign. Replies will go to ${emailConfig.senderEmail}.`,
-          timestamp: new Date()
-        };
-        setChatMessages(prev => [...prev, successMessage]);
-        setChatStage('complete');
-      } else {
-        throw new Error(data.error || data.detail || 'Failed to send emails');
+      if (searchMatch || industryMatch) {
+        const industry = industryMatch ? industryMatch[1] : searchMatch?.[1] || userMessage;
+        handleAction('search_leads', { industry });
+        setIsLoading(false);
+        return;
       }
-    } catch (err: any) {
-      console.error('Email sending error:', err);
-      setEmailResult({ success: false, message: err.message });
-      const errorMessage: ChatMessage = {
-        role: 'assistant',
-        content: `❌ **Error submitting campaign:**\n\n${err.message}\n\nPlease try again or check your configuration.`,
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, errorMessage]);
-      setChatStage('confirming');
-    } finally {
-      setIsSendingEmail(false);
+
+      // Use AI for general questions
+      const context = `You are an AI lead generation assistant for Highshift Media.
+      Current leads: ${currentLeads.length > 0 ? JSON.stringify(currentLeads.slice(0, 3)) : 'None yet'}
+      Current search criteria: ${JSON.stringify(leadCriteria)}
+      
+      Help with: finding business leads, qualifying leads, creating outreach emails, understanding lead generation strategies.
+      Be helpful, concise, and action-oriented. Suggest next steps.`;
+
+      const response = await generateAgentResponse('lead_gen', userMessage, context);
+      addMessage('bot', response, [
+        { label: 'Search Leads', action: 'new_search' },
+        { label: 'Create Email Template', action: 'create_email' },
+      ]);
+    } catch (error) {
+      addMessage('bot', "I can help you find and qualify leads! Here are some quick actions:", [
+        { label: '🔍 Search Leads', action: 'new_search' },
+        { label: '📧 Create Email Template', action: 'create_email' },
+        { label: '📊 Score Leads', action: 'score_leads' },
+      ]);
     }
+
+    setIsLoading(false);
   };
-
-  // Auto-scroll chat
-  useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
-  }, [chatMessages]);
-
-  const handlePresetClick = (preset: typeof industryPresets[0]) => {
-    setQuery(preset.query);
-  };
-
-  const toggleLeadSelection = (placeId: string) => {
-    setSelectedLeads(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(placeId)) {
-        newSet.delete(placeId);
-      } else {
-        newSet.add(placeId);
-      }
-      return newSet;
-    });
-  };
-
-  const selectAllLeads = () => {
-    if (selectedLeads.size === leads.length) {
-      setSelectedLeads(new Set());
-    } else {
-      setSelectedLeads(new Set(leads.map(l => l.place_id)));
-    }
-  };
-
-  const exportLeads = () => {
-    const leadsToExport = leads.filter(l => selectedLeads.size === 0 || selectedLeads.has(l.place_id));
-    
-    const csvContent = [
-      ['Name', 'Address', 'Phone', 'Website', 'Rating', 'Reviews', 'Status'].join(','),
-      ...leadsToExport.map(lead => [
-        `"${lead.name}"`,
-        `"${lead.address}"`,
-        lead.phone || '',
-        lead.website || '',
-        lead.rating || '',
-        lead.reviews || '',
-        lead.business_status || ''
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `leads_${query.replace(/\s+/g, '_')}_${location.replace(/\s+/g, '_')}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  useEffect(() => {
-    if (leads.length > 0 && resultsRef.current) {
-      resultsRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [leads]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 rounded-2xl p-6 mb-6 border border-violet-500/30">
-        <div className="flex items-start justify-between">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-black/40">
+      <div className="w-full max-w-4xl h-[90vh] max-h-[900px] glass-panel rounded-[2.5rem] shadow-2xl flex flex-col border-white/10 overflow-hidden bg-gray-900/80 backdrop-blur-xl">
+        {/* Header */}
+        <header className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5 backdrop-blur-md">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-violet-500/20 rounded-xl">
-              <Target className="w-8 h-8 text-violet-400" />
+            <div className="p-2 rounded-xl bg-violet-500/20 border border-violet-500/20">
+              <Target className="w-6 h-6 text-violet-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">AI Lead Generator</h2>
-              <p className="text-white/60">Find qualified business leads from Google Maps</p>
+              <h2 className="text-xl font-bold text-white tracking-tight">Lead Generation AI</h2>
+              <p className="text-[11px] font-bold text-violet-400/80 uppercase tracking-widest">Find & Qualify Leads Demo</p>
             </div>
           </div>
-          <button 
-            onClick={onBack} 
-            className="text-white/40 hover:text-white transition p-2"
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-
-      {/* Search Form */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-white/10 mb-6"
-      >
-        {/* Quick Presets */}
-        <div className="mb-6">
-          <label className="text-sm text-white/60 mb-3 block">Quick Select Industry</label>
-          <div className="flex flex-wrap gap-2">
-            {industryPresets.map((preset) => (
-              <button
-                key={preset.label}
-                onClick={() => handlePresetClick(preset)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  query === preset.query
-                    ? 'bg-violet-500 text-white'
-                    : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                {preset.icon} {preset.label}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            {currentLeads.length > 0 && (
+              <div className="px-3 py-1 rounded-full bg-violet-500/20 text-violet-300 text-sm font-medium">
+                {currentLeads.length} leads
+              </div>
+            )}
+            <button onClick={onRestart} className="p-2 rounded-lg hover:bg-white/10 transition text-white/60 hover:text-white">
+              <RefreshCw className="w-5 h-5" />
+            </button>
+            <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/10 transition text-white/60 hover:text-white text-xl">
+              ✕
+            </button>
           </div>
-        </div>
+        </header>
 
-        {/* Main Search Inputs */}
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="text-sm text-white/60 mb-2 block">Business Type / Query</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g., restaurants, dentists, gyms..."
-                className="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-violet-500 transition"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="text-sm text-white/60 mb-2 block">Location</label>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g., San Francisco, CA"
-                className="w-full bg-slate-900/50 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-violet-500 transition"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Advanced Filters Toggle */}
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 text-sm text-white/60 hover:text-white mb-4 transition"
-        >
-          <Filter className="w-4 h-4" />
-          {showFilters ? 'Hide' : 'Show'} Advanced Options
-        </button>
-
-        {/* Advanced Filters */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="grid md:grid-cols-2 gap-4 mb-4 p-4 bg-slate-900/30 rounded-xl">
-                <div>
-                  <label className="text-sm text-white/60 mb-2 block">
-                    Search Radius: {(radius / 1000).toFixed(1)} km
-                  </label>
-                  <input
-                    type="range"
-                    min="1000"
-                    max="50000"
-                    step="1000"
-                    value={radius}
-                    onChange={(e) => setRadius(Number(e.target.value))}
-                    className="w-full accent-violet-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-white/60 mb-2 block">
-                    Max Results: {limit}
-                  </label>
-                  <input
-                    type="range"
-                    min="5"
-                    max="100"
-                    step="5"
-                    value={limit}
-                    onChange={(e) => setLimit(Number(e.target.value))}
-                    className="w-full accent-violet-500"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4"
-          >
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <span>{error}</span>
-          </motion.div>
-        )}
-
-        {/* Search Button */}
-        <button
-          onClick={handleSearch}
-          disabled={isLoading || !query.trim() || !location.trim()}
-          className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Scraping Leads...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5" />
-              Generate Leads
-            </>
-          )}
-        </button>
-      </motion.div>
-
-      {/* Loading Animation */}
-      <AnimatePresence>
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-8 border border-white/10 mb-6"
-          >
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-violet-500/20 border-t-violet-500 animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Target className="w-6 h-6 text-violet-400" />
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="text-white font-medium">Scraping Google Maps...</p>
-                <p className="text-white/60 text-sm">Finding {query} in {location}</p>
-              </div>
-              <div className="flex gap-1">
-                {[0, 1, 2].map((i) => (
-                  <motion.div
-                    key={i}
-                    className="w-2 h-2 bg-violet-500 rounded-full"
-                    animate={{ opacity: [0.3, 1, 0.3] }}
-                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                  />
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Results */}
-      {leads.length > 0 && (
-        <motion.div
-          ref={resultsRef}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden"
-        >
-          {/* Sheet URL Banner */}
-          {sheetUrl && (
-            <div className="p-4 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border-b border-emerald-500/30">
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3">
-                  <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
-                  <div>
-                    <p className="text-white font-medium">Leads saved to spreadsheet!</p>
-                    <a 
-                      href={sheetUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-sm text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
-                    >
-                      Open Google Sheet <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(sheetUrl)}
-                  className="flex items-center gap-2 text-sm text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition"
-                >
-                  <Copy className="w-4 h-4" />
-                  Copy Link
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Results Header */}
-          <div className="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <CheckCircle2 className="w-5 h-5 text-green-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-white">Found {leads.length} Leads</h3>
-                <p className="text-sm text-white/60">{query} in {location}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={selectAllLeads}
-                className="text-sm text-white/60 hover:text-white px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition"
-              >
-                {selectedLeads.size === leads.length ? 'Deselect All' : 'Select All'}
-              </button>
-              <button
-                onClick={exportLeads}
-                className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg font-medium transition"
-              >
-                <Download className="w-4 h-4" />
-                Export CSV
-              </button>
-              {!showEmailChat && (
-                <button
-                  onClick={startEmailChat}
-                  className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2 rounded-lg font-medium transition"
-                >
-                  <Mail className="w-4 h-4" />
-                  Send Emails
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Leads List */}
-          <div className="max-h-[600px] overflow-y-auto">
-            {leads.map((lead, index) => (
+        {/* Chat Container */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <AnimatePresence>
+            {messages.map((message) => (
               <motion.div
-                key={lead.place_id || index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`p-4 border-b border-white/5 hover:bg-white/5 transition cursor-pointer ${
-                  selectedLeads.has(lead.place_id) ? 'bg-violet-500/10' : ''
-                }`}
-                onClick={() => toggleLeadSelection(lead.place_id)}
+                key={message.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className="flex items-start gap-4">
-                  {/* Selection Checkbox */}
-                  <div className={`w-5 h-5 rounded border-2 flex-shrink-0 mt-1 flex items-center justify-center transition ${
-                    selectedLeads.has(lead.place_id) 
-                      ? 'bg-violet-500 border-violet-500' 
-                      : 'border-white/30'
+                <div className={`flex gap-3 max-w-[85%] ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                  {/* Avatar */}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                    message.sender === 'user' 
+                      ? 'bg-violet-500/20 text-violet-400' 
+                      : 'bg-white/10 text-white/80'
                   }`}>
-                    {selectedLeads.has(lead.place_id) && (
-                      <CheckCircle2 className="w-3 h-3 text-white" />
-                    )}
+                    {message.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                   </div>
 
-                  {/* Lead Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h4 className="font-semibold text-white truncate">{lead.name}</h4>
-                      {lead.rating > 0 && (
-                        <div className="flex items-center gap-1 text-yellow-400 flex-shrink-0">
-                          <Star className="w-4 h-4 fill-current" />
-                          <span className="text-sm">{lead.rating}</span>
-                          <span className="text-white/40 text-sm">({lead.reviews})</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1 text-sm">
-                      {lead.address && (
-                        <div className="flex items-center gap-2 text-white/60">
-                          <MapPin className="w-4 h-4 flex-shrink-0" />
-                          <span className="truncate">{lead.address}</span>
-                        </div>
-                      )}
-                      {lead.phone && (
-                        <div className="flex items-center gap-2 text-white/60">
-                          <Phone className="w-4 h-4 flex-shrink-0" />
-                          <span>{lead.phone}</span>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); copyToClipboard(lead.phone); }}
-                            className="p-1 hover:bg-white/10 rounded transition"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
-                      {lead.website && (
-                        <div className="flex items-center gap-2 text-white/60">
-                          <Globe className="w-4 h-4 flex-shrink-0" />
-                          <a 
-                            href={lead.website} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-violet-400 hover:text-violet-300 truncate flex items-center gap-1"
-                          >
-                            {lead.website.replace(/^https?:\/\//, '').split('/')[0]}
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tags */}
-                    {lead.types && lead.types.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {lead.types.slice(0, 3).map((type, i) => (
-                          <span 
-                            key={i}
-                            className="px-2 py-0.5 bg-white/5 rounded text-xs text-white/50"
-                          >
-                            {type.replace(/_/g, ' ')}
+                  {/* Message Content */}
+                  <div className="space-y-2">
+                    <div className={`rounded-2xl px-4 py-3 ${
+                      message.sender === 'user'
+                        ? 'bg-violet-500/20 text-white border border-violet-500/30'
+                        : 'bg-white/5 text-white/90 border border-white/10'
+                    }`}>
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {message.text.split('\n').map((line, i) => (
+                          <span key={i}>
+                            {line.split(/(\*\*[^*]+\*\*)/).map((part, j) => {
+                              if (part.startsWith('**') && part.endsWith('**')) {
+                                return <strong key={j} className="font-semibold text-white">{part.slice(2, -2)}</strong>;
+                              }
+                              return part;
+                            })}
+                            {i < message.text.split('\n').length - 1 && <br />}
                           </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    {message.actions && message.actions.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {message.actions.map((action, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleAction(action.action, action.data)}
+                            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition-all"
+                          >
+                            {action.label}
+                          </button>
                         ))}
                       </div>
                     )}
@@ -708,209 +429,70 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
                 </div>
               </motion.div>
             ))}
-          </div>
+          </AnimatePresence>
 
-          {/* Results Footer */}
-          <div className="p-4 bg-slate-900/50 flex items-center justify-between">
-            <p className="text-sm text-white/40">
-              {selectedLeads.size > 0 
-                ? `${selectedLeads.size} leads selected` 
-                : 'Click to select leads for export'}
-            </p>
-            <button
-              onClick={handleSearch}
-              className="flex items-center gap-2 text-sm text-white/60 hover:text-white transition"
+          {/* Loading Indicator */}
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex gap-3"
             >
-              <RefreshCw className="w-4 h-4" />
-              Search Again
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-white/80" />
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  </div>
+                  <span className="text-sm text-white/50">Searching...</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <form onSubmit={handleSend} className="p-4 border-t border-white/10 bg-white/5">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Search for leads, ask questions, or type a command..."
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-violet-500 transition"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="px-5 py-3 bg-violet-500 hover:bg-violet-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-all flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Send
             </button>
           </div>
-        </motion.div>
-      )}
-
-      {/* Email Chat Interface */}
-      <AnimatePresence>
-        {showEmailChat && leads.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="mt-6 bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-emerald-500/30 overflow-hidden"
-          >
-            {/* Chat Header */}
-            <div className="p-4 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border-b border-emerald-500/30 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/20 rounded-lg">
-                  <Bot className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white">Email Campaign Assistant</h3>
-                  <p className="text-sm text-white/60">Let's compose your outreach emails</p>
-                </div>
-              </div>
+          
+          {/* Quick Actions */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            {industryPresets.slice(0, 4).map((preset) => (
               <button
-                onClick={() => setShowEmailChat(false)}
-                className="text-white/40 hover:text-white p-2 transition"
+                key={preset.label}
+                type="button"
+                onClick={() => setInput(`Find ${preset.query} leads`)}
+                className="px-3 py-1.5 text-xs rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white border border-white/5 transition"
               >
-                ✕
-              </button>
-            </div>
-
-            {/* Chat Messages */}
-            <div 
-              ref={chatRef}
-              className="h-[400px] overflow-y-auto p-4 space-y-4"
-            >
-              {chatMessages.map((msg, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
-                >
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    msg.role === 'assistant' 
-                      ? 'bg-emerald-500/20' 
-                      : 'bg-violet-500/20'
-                  }`}>
-                    {msg.role === 'assistant' 
-                      ? <Bot className="w-4 h-4 text-emerald-400" />
-                      : <User className="w-4 h-4 text-violet-400" />
-                    }
-                  </div>
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                    msg.role === 'assistant'
-                      ? 'bg-slate-700/50 text-white'
-                      : 'bg-violet-600 text-white'
-                  }`}>
-                    <div className="whitespace-pre-wrap text-sm" dangerouslySetInnerHTML={{
-                      __html: msg.content
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/_(.*?)_/g, '<em>$1</em>')
-                        .replace(/\n/g, '<br />')
-                    }} />
-                  </div>
-                </motion.div>
-              ))}
-              
-              {/* Sending indicator */}
-              {isSendingEmail && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex gap-3"
-                >
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <div className="bg-slate-700/50 rounded-2xl px-4 py-3 flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
-                    <span className="text-sm text-white/60">Sending emails...</span>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            {/* Chat Input */}
-            {chatStage !== 'complete' && chatStage !== 'sending' && (
-              <div className="p-4 border-t border-white/10">
-                <form 
-                  onSubmit={(e) => { e.preventDefault(); handleChatSubmit(); }}
-                  className="flex gap-3"
-                >
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={
-                      chatStage === 'awaiting_doc_template' ? 'Paste your Google Doc template URL...' :
-                      chatStage === 'awaiting_sender_name' ? 'Your name...' :
-                      chatStage === 'awaiting_sender_email' ? 'your@email.com' :
-                      chatStage === 'confirming' ? 'Type "yes" to send or "edit" to change...' :
-                      'Type your message...'
-                    }
-                    className="flex-1 bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500 transition"
-                    disabled={isSendingEmail}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!chatInput.trim() || isSendingEmail}
-                    className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl transition flex items-center gap-2"
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {/* Completed State */}
-            {chatStage === 'complete' && (
-              <div className="p-4 border-t border-white/10 bg-emerald-500/10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-emerald-400">
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Campaign submitted successfully!</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowEmailChat(false);
-                      setChatMessages([]);
-                      setChatStage('idle');
-                      setEmailConfig({ sheetUrl: '', docTemplateUrl: '', senderName: '', senderEmail: '' });
-                    }}
-                    className="text-sm text-white/60 hover:text-white transition"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Empty State */}
-      {!isLoading && leads.length === 0 && !error && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-slate-800/30 rounded-2xl p-12 border border-white/5 text-center"
-        >
-          <div className="w-16 h-16 bg-violet-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-violet-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-white mb-2">Ready to Find Leads</h3>
-          <p className="text-white/60 max-w-md mx-auto">
-            Enter a business type and location above to discover qualified leads from Google Maps
-          </p>
-        </motion.div>
-      )}
-
-      {/* Search History */}
-      {searchHistory.length > 0 && !isLoading && leads.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-6 p-4 bg-slate-800/30 rounded-xl border border-white/5"
-        >
-          <p className="text-sm text-white/40 mb-2">Recent Searches</p>
-          <div className="flex flex-wrap gap-2">
-            {searchHistory.map((search, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  const [q, loc] = search.split(' in ');
-                  setQuery(q);
-                  setLocation(loc);
-                }}
-                className="text-sm text-white/60 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg transition"
-              >
-                {search}
+                {preset.icon} {preset.label}
               </button>
             ))}
           </div>
-        </motion.div>
-      )}
+        </form>
+      </div>
     </div>
   );
 };
