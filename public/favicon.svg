@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512"><svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="rgba(56, 189, 248, 0.4)"></stop>
+        <stop offset="100%" stop-color="rgba(30, 58, 138, 0.8)"></stop>
+      </linearGradient>
+      <filter id="glass_blur" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="5"></feGaussianBlur>
+      </filter>
+    </defs>
+    
+    <circle cx="256" cy="256" r="230" fill="url(#bg_grad)" stroke="rgba(255,255,255,0.2)" stroke-width="4"></circle>
+    
+    <!-- Specular highlight for glass look -->
+    <ellipse cx="180" cy="140" rx="60" ry="30" fill="rgba(255,255,255,0.1)" transform="rotate(-30, 180, 140)"></ellipse>
+
+    <!-- Grid Background -->
+    <path d="M120 120H392M120 200H392M120 280H392M120 360H392" stroke="rgba(255,255,255,0.05)" stroke-width="1"></path>
+    <path d="M120 120V392M200 120V392M280 120V392M360 120V392" stroke="rgba(255,255,255,0.05)" stroke-width="1"></path>
+    
+    <!-- Growth Arrow ZigZag with Gloss -->
+    <path d="M80 420L150 340L210 380L310 220L360 270L440 130" stroke="white" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"></path>
+    <path d="M80 420L150 340L210 380L310 220L360 270L440 130" stroke="#0ea5e9" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"></path>
+    
+    <!-- Arrow Tip -->
+    <path d="M440 130L370 145M440 130L425 200" stroke="#0ea5e9" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg></svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>
