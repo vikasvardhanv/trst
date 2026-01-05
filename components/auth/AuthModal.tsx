@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { GlassCard } from '../ui/GlassCard';
 import { Button } from '../ui/Button';
@@ -41,7 +41,6 @@ const decodeJwtPayload = (token: string) => {
 type AuthView = 'options' | 'email-login' | 'email-signup';
 
 export const AuthModal: React.FC = () => {
-  const navigate = useNavigate();
   const {
     showAuthModal,
     setShowAuthModal,
@@ -50,8 +49,6 @@ export const AuthModal: React.FC = () => {
     login,
     signup,
     oauthLogin,
-    pendingDemoRedirect,
-    setPendingDemoRedirect
   } = useAuth();
 
   const [view, setView] = useState<AuthView>('options');
@@ -212,10 +209,6 @@ export const AuthModal: React.FC = () => {
   const handleSuccess = () => {
     setTimeout(() => {
       setShowAuthModal(false);
-      if (pendingDemoRedirect) {
-        navigate(pendingDemoRedirect);
-        setPendingDemoRedirect(null);
-      }
     }, 500);
   };
 

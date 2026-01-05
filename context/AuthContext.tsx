@@ -27,8 +27,6 @@ interface AuthContextType {
   setShowAuthModal: (show: boolean) => void;
   authModalMode: 'login' | 'signup';
   setAuthModalMode: (mode: 'login' | 'signup') => void;
-  pendingDemoRedirect: string | null;
-  setPendingDemoRedirect: (path: string | null) => void;
 }
 
 interface SignupData {
@@ -50,7 +48,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
-  const [pendingDemoRedirect, setPendingDemoRedirect] = useState<string | null>(null);
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -182,8 +179,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setShowAuthModal,
     authModalMode,
     setAuthModalMode,
-    pendingDemoRedirect,
-    setPendingDemoRedirect
   };
 
   return (

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion } from 'framer-motion';
 import { Lock, ArrowRight } from 'lucide-react';
@@ -11,17 +10,14 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading, setShowAuthModal, setAuthModalMode, setPendingDemoRedirect } = useAuth();
-  const location = useLocation();
+  const { isAuthenticated, isLoading, setShowAuthModal, setAuthModalMode } = useAuth();
 
   const handleSignIn = () => {
-    setPendingDemoRedirect(location.pathname);
     setAuthModalMode('login');
     setShowAuthModal(true);
   };
 
   const handleSignUp = () => {
-    setPendingDemoRedirect(location.pathname);
     setAuthModalMode('signup');
     setShowAuthModal(true);
   };
