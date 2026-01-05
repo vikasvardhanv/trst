@@ -10,7 +10,7 @@ import { INDUSTRY_AGENTS } from '../constants';
 import {
   Play, MessageSquare, Mic, Bot, FileText, Briefcase,
   ArrowLeft, ArrowRight, Sparkles, Network, Wand2,
-  BarChart3, Brain, Workflow, Calendar
+  BarChart3, Brain, Workflow, Calendar, Target
 } from 'lucide-react';
 
 // Demo categories
@@ -89,6 +89,12 @@ const demoCategories = [
         description: 'Generate comprehensive business plans with AI',
         icon: <Briefcase className="h-6 w-6 text-amber-400" />,
       },
+      {
+        id: 'lead-gen',
+        name: 'AI Lead Generator',
+        description: 'Scrape qualified leads from Google Maps instantly',
+        icon: <Target className="h-6 w-6 text-violet-400" />,
+      },
     ],
   },
 ];
@@ -121,6 +127,7 @@ export const Demos: React.FC = () => {
       'content-generator': '/demos/content-generator',
       'agent-orchestration': '/demos/agent-orchestration',
       'custom-model': '/demos/custom-model',
+      'lead-gen': '/demos/lead-gen',
     };
     navigate(routes[demoId] || '/demos');
   };

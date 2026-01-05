@@ -37,6 +37,7 @@ const LegalDemo = lazy(() => import('./pages/demos/LegalDemo').then(m => ({ defa
 const EcommerceDemo = lazy(() => import('./pages/demos/EcommerceDemo').then(m => ({ default: m.EcommerceDemo })));
 const EducationDemo = lazy(() => import('./pages/demos/EducationDemo').then(m => ({ default: m.EducationDemo })));
 const RecruitmentDemo = lazy(() => import('./pages/demos/RecruitmentDemo').then(m => ({ default: m.RecruitmentDemo })));
+const LeadGenDemo = lazy(() => import('./pages/demos/LeadGenDemo').then(m => ({ default: m.LeadGenDemo })));
 
 // Advanced AI Service Demos - lazy loaded
 const WorkflowAutomationDemo = lazy(() => import('./pages/demos/WorkflowAutomationDemo').then(m => ({ default: m.WorkflowAutomationDemo })));
@@ -129,6 +130,7 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/demos/ecommerce" element={<PageTransition><ProtectedRoute><EcommerceDemo /></ProtectedRoute></PageTransition>} />
         <Route path="/demos/education" element={<PageTransition><ProtectedRoute><EducationDemo /></ProtectedRoute></PageTransition>} />
         <Route path="/demos/recruitment" element={<PageTransition><ProtectedRoute><RecruitmentDemo /></ProtectedRoute></PageTransition>} />
+        <Route path="/demos/lead-gen" element={<PageTransition><ProtectedRoute><LeadGenDemo /></ProtectedRoute></PageTransition>} />
 
         {/* Advanced AI Service Demos - Protected */}
         <Route path="/demos/workflow-automation" element={<PageTransition><ProtectedRoute><WorkflowAutomationDemo /></ProtectedRoute></PageTransition>} />
