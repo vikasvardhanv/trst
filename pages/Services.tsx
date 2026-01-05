@@ -34,7 +34,7 @@ const serviceRoutes: Record<string, string> = {
   content: '/marketing',
   seo_aeo: '/marketing',
   social_automation: '/marketing',
-  lead_generation: '/marketing',
+  lead_generation: '/demos/lead-gen',
   automation: '/contact',
   crm_automation: '/contact',
   integrations: '/contact',

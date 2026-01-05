@@ -175,16 +175,15 @@ export const Landing: React.FC = () => {
                   Try Live Demo
                 </Button>
               </Link>
-              <Button
-                size="lg"
-                variant="outline"
-                icon={<Sparkles className="h-5 w-5" />}
-                onClick={() => {
-                  window.location.href = '/demo-form.html';
-                }}
-              >
-                Experience Yourself
-              </Button>
+              <Link to="/demo-form">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  icon={<Sparkles className="h-5 w-5" />}
+                >
+                  Experience Yourself
+                </Button>
+              </Link>
               <Link to="/services">
                 <Button variant="secondary" size="lg" icon={<ArrowRight className="h-5 w-5" />}>
                   Explore Services
