@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Target, Send, Bot, User, RefreshCw
+  Target, Send, Bot, User, RefreshCw, Loader2
 } from 'lucide-react';
 import { generateAgentResponse } from '../../services/geminiService';
+
+// API URL for leads proxy
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 interface LeadGenAgentProps {
   onBack: () => void;
@@ -22,21 +25,23 @@ interface Message {
 interface Lead {
   id: string;
   name: string;
+  address?: string;
   industry: string;
   location: string;
   phone?: string;
   email?: string;
   website?: string;
   rating?: number;
+  reviews?: number;
   description?: string;
+  place_id?: string;
   status: 'new' | 'contacted' | 'qualified' | 'converted';
 }
 
 interface LeadCriteria {
   industry: string;
   location: string;
-  companySize?: string;
-  keywords?: string[];
+  radius?: number;
 }
 
 // Sample leads database for demo
@@ -100,7 +105,8 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentLeads, setCurrentLeads] = useState<Lead[]>([]);
-  const [leadCriteria, setLeadCriteria] = useState<LeadCriteria>({ industry: '', location: '' });
+  const [leadCriteria, setLeadCriteria] = useState<LeadCriteria>({ industry: '', location: '', radius: 32000 });
+  const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -118,6 +124,59 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
     }]);
   };
 
+  // Fetch leads from backend API (which proxies to Modal)
+  const fetchLeadsFromAPI = async (query: string, location: string, radius: number = 32000): Promise<Lead[]> => {
+    try {
+      const response = await fetch(`${API_URL}/leads/scrape`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query.trim(),
+          location: location.trim(),
+          radius,
+          limit: 20,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.leads && Array.isArray(data.leads)) {
+        // Save sheet URL if available
+        if (data.sheet_url) {
+          setSheetUrl(data.sheet_url);
+        }
+        
+        // Transform API leads to our format
+        return data.leads.map((lead: any, idx: number) => ({
+          id: lead.place_id || `lead-${idx}`,
+          name: lead.name,
+          address: lead.address,
+          industry: query,
+          location: location,
+          phone: lead.phone,
+          website: lead.website,
+          rating: lead.rating,
+          reviews: lead.reviews,
+          description: lead.types?.join(', ') || lead.business_status,
+          place_id: lead.place_id,
+          status: 'new' as const,
+        }));
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('API fetch error:', error);
+      throw error;
+    }
+  };
+
+  // Fallback to sample data if API fails
   const searchLeads = (industry: string, location: string = 'San Francisco, CA') => {
     const industryKey = industry.toLowerCase();
     let leads: Lead[] = [];
@@ -144,29 +203,74 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
     switch (action) {
       case 'search_leads':
         const industry = data?.industry || leadCriteria.industry;
-        const location = data?.location || 'San Francisco, CA';
-        setLeadCriteria({ industry, location });
+        const location = data?.location || 'Westmont, Chicago, IL';
+        const radius = data?.radius || 32000; // ~20 miles
+        setLeadCriteria({ industry, location, radius });
         
-        const foundLeads = searchLeads(industry, location);
-        setCurrentLeads(foundLeads);
+        // Show searching message
+        addMessage('bot', `🔍 Searching for **${industry}** in **${location}**...\n\n_Fetching real-time data from Google Maps..._`);
+        setIsLoading(true);
         
-        let leadsText = `🔍 **Found ${foundLeads.length} leads for "${industry}" in ${location}:**\n\n`;
-        foundLeads.forEach((lead, idx) => {
-          leadsText += `**${idx + 1}. ${lead.name}**\n`;
-          leadsText += `   📍 ${lead.location}\n`;
-          if (lead.phone) leadsText += `   📞 ${lead.phone}\n`;
-          if (lead.rating) leadsText += `   ⭐ ${lead.rating}/5\n`;
-          if (lead.description) leadsText += `   💼 ${lead.description}\n`;
-          leadsText += '\n';
-        });
-        leadsText += `What would you like to do with these leads?`;
-        
-        addMessage('bot', leadsText, [
-          { label: '📧 Create Email Template', action: 'create_email' },
-          { label: '📊 Score Leads', action: 'score_leads' },
-          { label: '📥 Export to CSV', action: 'export_leads' },
-          { label: '🔄 New Search', action: 'new_search' },
-        ], foundLeads);
+        try {
+          // Try to fetch from real API
+          const apiLeads = await fetchLeadsFromAPI(industry, location, radius);
+          
+          if (apiLeads.length > 0) {
+            setCurrentLeads(apiLeads);
+            
+            let leadsText = `✅ **Found ${apiLeads.length} leads for "${industry}" in ${location}:**\n\n`;
+            apiLeads.forEach((lead, idx) => {
+              leadsText += `**${idx + 1}. ${lead.name}**\n`;
+              if (lead.address) leadsText += `   📍 ${lead.address}\n`;
+              if (lead.phone) leadsText += `   📞 ${lead.phone}\n`;
+              if (lead.website) leadsText += `   🌐 ${lead.website}\n`;
+              if (lead.rating) leadsText += `   ⭐ ${lead.rating}/5${lead.reviews ? ` (${lead.reviews} reviews)` : ''}\n`;
+              leadsText += '\n';
+            });
+            leadsText += `What would you like to do with these leads?`;
+            
+            // Remove the searching message and add results
+            setMessages(prev => prev.slice(0, -1));
+            addMessage('bot', leadsText, [
+              { label: '📧 Create Email Template', action: 'create_email' },
+              { label: '📊 Score Leads', action: 'score_leads' },
+              { label: '📥 Export to CSV', action: 'export_leads' },
+              { label: '🔄 New Search', action: 'new_search' },
+            ], apiLeads);
+          } else {
+            // No leads found
+            setMessages(prev => prev.slice(0, -1));
+            addMessage('bot', `❌ No leads found for "${industry}" in ${location}. Try:\n\n• A different industry\n• A broader location\n• Increasing the search radius`, [
+              { label: '🔄 Try Again', action: 'new_search' },
+            ]);
+          }
+        } catch (error) {
+          console.error('API error, falling back to sample data:', error);
+          // Fallback to sample data
+          const fallbackLeads = searchLeads(industry, location);
+          setCurrentLeads(fallbackLeads);
+          
+          let leadsText = `⚠️ **Using demo data** (API temporarily unavailable)\n\n🔍 **Found ${fallbackLeads.length} sample leads for "${industry}":**\n\n`;
+          fallbackLeads.forEach((lead, idx) => {
+            leadsText += `**${idx + 1}. ${lead.name}**\n`;
+            leadsText += `   📍 ${lead.location}\n`;
+            if (lead.phone) leadsText += `   📞 ${lead.phone}\n`;
+            if (lead.rating) leadsText += `   ⭐ ${lead.rating}/5\n`;
+            if (lead.description) leadsText += `   💼 ${lead.description}\n`;
+            leadsText += '\n';
+          });
+          leadsText += `What would you like to do with these leads?`;
+          
+          setMessages(prev => prev.slice(0, -1));
+          addMessage('bot', leadsText, [
+            { label: '📧 Create Email Template', action: 'create_email' },
+            { label: '📊 Score Leads', action: 'score_leads' },
+            { label: '📥 Export to CSV', action: 'export_leads' },
+            { label: '🔄 New Search', action: 'new_search' },
+          ], fallbackLeads);
+        } finally {
+          setIsLoading(false);
+        }
         break;
 
       case 'create_email':
@@ -305,13 +409,17 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
     setIsLoading(true);
 
     try {
-      // Check if user is searching for leads
-      const searchMatch = userMessage.toLowerCase().match(/(?:find|search|look for|get|show)\s+(?:leads?|businesses?|companies?)\s+(?:for|in)?\s*(.+)/);
-      const industryMatch = userMessage.toLowerCase().match(/(restaurants?|real estate|dentists?|gyms?|salons?|lawyers?|fitness|dental|legal)/);
+      // Check if user is searching for leads - parse industry, location, and radius
+      const industryMatch = userMessage.toLowerCase().match(/(restaurants?|real estate|dentists?|gyms?|salons?|lawyers?|fitness|dental|legal|clinics?|doctors?|plumbers?|electricians?|contractors?|auto|car\s*dealers?|mechanics?)/);
+      const locationMatch = userMessage.match(/(?:in|near|around|at)\s+([A-Za-z\s,]+?)(?:\s+(?:with|within|radius)|\s*$)/i);
+      const radiusMatch = userMessage.match(/(?:with|within|radius)\s*(\d+)\s*(?:miles?|mi)?/i);
       
-      if (searchMatch || industryMatch) {
-        const industry = industryMatch ? industryMatch[1] : searchMatch?.[1] || userMessage;
-        handleAction('search_leads', { industry });
+      if (industryMatch || locationMatch) {
+        const industry = industryMatch ? industryMatch[1] : 'businesses';
+        const location = locationMatch ? locationMatch[1].trim() : 'Chicago, IL';
+        const radius = radiusMatch ? parseInt(radiusMatch[1]) : 10;
+        
+        handleAction('search_leads', { industry, location, radius });
         setIsLoading(false);
         return;
       }

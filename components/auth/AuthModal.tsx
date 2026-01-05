@@ -48,7 +48,8 @@ export const AuthModal: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showNativeGoogleBtn, setShowNativeGoogleBtn] = useState(false);
+  const [googleBtnReady, setGoogleBtnReady] = useState(false);
+  const [googleInitialized, setGoogleInitialized] = useState(false);
   const googleBtnRef = React.useRef<HTMLDivElement>(null);
 
   // Form state
@@ -73,9 +74,94 @@ export const AuthModal: React.FC = () => {
       setCompany('');
       setPhone('');
       setAgreeToTerms(false);
-      setShowNativeGoogleBtn(false);
+      setGoogleBtnReady(false);
     }
   }, [showAuthModal, authModalMode]);
+
+  // Initialize Google Sign-In button when modal opens
+  useEffect(() => {
+    if (!showAuthModal || view !== 'options') return;
+
+    const initGoogleButton = () => {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) return;
+
+      const google = (window as any).google;
+      if (!google?.accounts?.id) return;
+
+      // Handle credential response
+      const handleCredentialResponse = async (response: any) => {
+        if (!response?.credential) {
+          setError('Google Sign-In did not return credentials. Please try again.');
+          return;
+        }
+
+        setOauthLoading('google');
+        try {
+          const payload = JSON.parse(atob(response.credential.split('.')[1]));
+          const result = await oauthLogin({
+            email: payload.email,
+            fullName: payload.name,
+            provider: 'google',
+            providerId: payload.sub
+          });
+
+          if (result.success) {
+            setSuccess('Signed in with Google!');
+            handleSuccess();
+          } else {
+            setError(result.message);
+          }
+        } catch (err) {
+          setError('Failed to process Google Sign-In. Please try again.');
+        } finally {
+          setOauthLoading(null);
+        }
+      };
+
+      // Initialize
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        ux_mode: 'popup',
+      });
+      
+      setGoogleInitialized(true);
+
+      // Render button
+      setTimeout(() => {
+        if (googleBtnRef.current) {
+          googleBtnRef.current.innerHTML = '';
+          google.accounts.id.renderButton(googleBtnRef.current, {
+            type: 'standard',
+            theme: 'filled_blue',
+            size: 'large',
+            width: 360,
+            text: 'continue_with',
+            shape: 'rectangular',
+            logo_alignment: 'left'
+          });
+          setGoogleBtnReady(true);
+        }
+      }, 100);
+    };
+
+    // Wait for Google script to load
+    if ((window as any).google?.accounts?.id) {
+      initGoogleButton();
+    } else {
+      const checkGoogle = setInterval(() => {
+        if ((window as any).google?.accounts?.id) {
+          clearInterval(checkGoogle);
+          initGoogleButton();
+        }
+      }, 100);
+      // Cleanup after 5 seconds
+      setTimeout(() => clearInterval(checkGoogle), 5000);
+    }
+  }, [showAuthModal, view]);
 
   // Handle escape key
   useEffect(() => {
@@ -102,119 +188,69 @@ export const AuthModal: React.FC = () => {
     }, 500);
   };
 
-  // Google Sign-In using GIS (Google Identity Services)
-  const handleGoogleSignIn = async () => {
+  // Manual Google Sign-In (when native button hasn't loaded yet)
+  const handleManualGoogleSignIn = async () => {
     setOauthLoading('google');
     setError('');
 
-    // Set a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      setOauthLoading(null);
-      setError('Google Sign-In timed out. Please try again or use email sign-in.');
-    }, 60000); // 60 second timeout
-
-    const cleanup = () => {
-      clearTimeout(timeoutId);
-      setOauthLoading(null);
-    };
-
     try {
-      // Check if client ID is configured
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      if (!clientId) {
-        cleanup();
-        setError('Google Sign-In is not configured. Please use email sign-in.');
-        return;
-      }
-
-      // Load Google Identity Services
       const google = (window as any).google;
-      if (!google?.accounts) {
-        cleanup();
-        setError('Google Sign-In failed to load. Please refresh the page or try email sign-in.');
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+      if (!clientId) {
+        setError('Google Sign-In is not configured. Please try email sign-in.');
+        setOauthLoading(null);
         return;
       }
 
-      // Handle the credential response (works for both One Tap and button click)
-      const handleCredentialResponse = async (response: any) => {
-        try {
-          if (!response?.credential) {
-            cleanup();
-            setError('Google Sign-In did not return credentials. Please try again.');
-            return;
-          }
+      if (google?.accounts?.id) {
+        // Try to prompt One Tap
+        google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // One Tap not available, use OAuth2 redirect
+            const redirectUri = `${window.location.origin}/auth/google/callback`;
+            const scope = 'openid email profile';
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}&prompt=select_account`;
+            
+            // Open in popup
+            const width = 500;
+            const height = 600;
+            const left = window.screenX + (window.outerWidth - width) / 2;
+            const top = window.screenY + (window.outerHeight - height) / 2;
+            
+            const popup = window.open(
+              authUrl,
+              'google-auth',
+              `width=${width},height=${height},left=${left},top=${top},popup=yes`
+            );
 
-          // Decode JWT to get user info
-          const payload = JSON.parse(atob(response.credential.split('.')[1]));
-
-          const result = await oauthLogin({
-            email: payload.email,
-            fullName: payload.name,
-            provider: 'google',
-            providerId: payload.sub
-          });
-
-          clearTimeout(timeoutId);
-          setOauthLoading(null);
-
-          if (result.success) {
-            setSuccess('Signed in with Google!');
-            handleSuccess();
-          } else {
-            setError(result.message);
-          }
-        } catch (err) {
-          cleanup();
-          setError('Failed to process Google Sign-In. Please try again.');
-        }
-      };
-
-      // Initialize Google Identity Services
-      google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        itp_support: true,
-        use_fedcm_for_prompt: true
-      });
-
-      // Try One Tap first, with visible button fallback
-      google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // One Tap not available - show native Google button for user to click
-          cleanup();
-          setShowNativeGoogleBtn(true);
-          
-          // Render the actual Google button in the visible container
-          setTimeout(() => {
-            if (googleBtnRef.current) {
-              googleBtnRef.current.innerHTML = ''; // Clear any previous button
-              google.accounts.id.renderButton(googleBtnRef.current, {
-                type: 'standard',
-                theme: 'outline',
-                size: 'large',
-                width: googleBtnRef.current.offsetWidth || 300,
-                text: 'continue_with',
-                shape: 'rectangular'
-              });
+            if (!popup) {
+              setError('Popup blocked. Please allow popups and try again.');
+              setOauthLoading(null);
+              return;
             }
-          }, 100);
-        } else if (notification.isDismissedMoment()) {
-          const reason = notification.getDismissedReason();
-          if (reason === 'credential_returned') {
-            // Success - callback will handle it
-          } else {
-            cleanup();
-            // User dismissed - no error message needed
-          }
-        }
-      });
 
+            // Listen for the callback
+            const checkPopup = setInterval(() => {
+              try {
+                if (popup.closed) {
+                  clearInterval(checkPopup);
+                  setOauthLoading(null);
+                }
+              } catch (e) {
+                // Cross-origin error means popup is on Google's domain
+              }
+            }, 500);
+          }
+        });
+      } else {
+        setError('Google Sign-In is loading. Please wait and try again.');
+        setOauthLoading(null);
+      }
     } catch (err) {
       console.error('Google Sign-In error:', err);
-      cleanup();
       setError('Google Sign-In failed. Please try email sign-in.');
+      setOauthLoading(null);
     }
   };
 
@@ -386,30 +422,28 @@ export const AuthModal: React.FC = () => {
             {/* Options View */}
             {view === 'options' && (
               <div className="space-y-3">
-                {/* Google Button - Always show styled button */}
-                <button
-                  onClick={handleGoogleSignIn}
-                  disabled={oauthLoading !== null}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-800 font-medium rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
-                >
-                  {oauthLoading === 'google' ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                {/* Google Sign-In Button */}
+                <div className="w-full">
+                  {!googleBtnReady ? (
+                    <button
+                      onClick={handleManualGoogleSignIn}
+                      disabled={oauthLoading === 'google'}
+                      className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300 disabled:opacity-50"
+                    >
+                      {oauthLoading === 'google' ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <GoogleIcon />
+                      )}
+                      Continue with Google
+                    </button>
                   ) : (
-                    <GoogleIcon />
-                  )}
-                  Continue with Google
-                </button>
-
-                {/* Native Google Button - Show if One Tap failed */}
-                {showNativeGoogleBtn && (
-                  <div className="w-full">
-                    <p className="text-xs text-white/50 mb-2 text-center">Or use Google's sign-in button</p>
                     <div 
                       ref={googleBtnRef}
                       className="w-full flex justify-center min-h-[44px]"
                     />
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Apple Button */}
                 <button
