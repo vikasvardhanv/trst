@@ -48,6 +48,8 @@ export const AuthModal: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showNativeGoogleBtn, setShowNativeGoogleBtn] = useState(false);
+  const googleBtnRef = React.useRef<HTMLDivElement>(null);
 
   // Form state
   const [email, setEmail] = useState('');
@@ -71,6 +73,7 @@ export const AuthModal: React.FC = () => {
       setCompany('');
       setPhone('');
       setAgreeToTerms(false);
+      setShowNativeGoogleBtn(false);
     }
   }, [showAuthModal, authModalMode]);
 
@@ -99,7 +102,7 @@ export const AuthModal: React.FC = () => {
     }, 500);
   };
 
-  // Google Sign-In
+  // Google Sign-In using GIS (Google Identity Services)
   const handleGoogleSignIn = async () => {
     setOauthLoading('google');
     setError('');
@@ -108,7 +111,7 @@ export const AuthModal: React.FC = () => {
     const timeoutId = setTimeout(() => {
       setOauthLoading(null);
       setError('Google Sign-In timed out. Please try again or use email sign-in.');
-    }, 30000); // 30 second timeout
+    }, 60000); // 60 second timeout
 
     const cleanup = () => {
       clearTimeout(timeoutId);
@@ -126,13 +129,13 @@ export const AuthModal: React.FC = () => {
 
       // Load Google Identity Services
       const google = (window as any).google;
-      if (!google?.accounts?.id) {
+      if (!google?.accounts) {
         cleanup();
-        setError('Google Sign-In failed to load. Please disable popup blocker or try email sign-in.');
+        setError('Google Sign-In failed to load. Please refresh the page or try email sign-in.');
         return;
       }
 
-      // Handle the credential response
+      // Handle the credential response (works for both One Tap and button click)
       const handleCredentialResponse = async (response: any) => {
         try {
           if (!response?.credential) {
@@ -166,158 +169,47 @@ export const AuthModal: React.FC = () => {
         }
       };
 
+      // Initialize Google Identity Services
       google.accounts.id.initialize({
         client_id: clientId,
         callback: handleCredentialResponse,
-        cancel_on_tap_outside: false
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        itp_support: true,
+        use_fedcm_for_prompt: true
       });
 
-      // First try One Tap prompt
+      // Try One Tap first, with visible button fallback
       google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed()) {
-          const reason = notification.getNotDisplayedReason();
-          console.log('Google One Tap not displayed:', reason);
-
-          // Handle specific reasons
-          if (reason === 'opt_out_or_no_session') {
-            // User not signed into Google - use popup instead
-            openGooglePopup();
-          } else if (reason === 'suppressed_by_user') {
-            cleanup();
-            setError('Google Sign-In was blocked. Please enable popups or use email sign-in.');
-          } else {
-            // Try popup as fallback
-            openGooglePopup();
-          }
-        } else if (notification.isSkippedMoment()) {
-          const reason = notification.getSkippedReason();
-          console.log('Google One Tap skipped:', reason);
-
-          if (reason === 'user_cancel') {
-            cleanup();
-            // User closed the prompt - no error needed
-          } else {
-            // Try popup as fallback
-            openGooglePopup();
-          }
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // One Tap not available - show native Google button for user to click
+          cleanup();
+          setShowNativeGoogleBtn(true);
+          
+          // Render the actual Google button in the visible container
+          setTimeout(() => {
+            if (googleBtnRef.current) {
+              googleBtnRef.current.innerHTML = ''; // Clear any previous button
+              google.accounts.id.renderButton(googleBtnRef.current, {
+                type: 'standard',
+                theme: 'outline',
+                size: 'large',
+                width: googleBtnRef.current.offsetWidth || 300,
+                text: 'continue_with',
+                shape: 'rectangular'
+              });
+            }
+          }, 100);
         } else if (notification.isDismissedMoment()) {
           const reason = notification.getDismissedReason();
-          console.log('Google One Tap dismissed:', reason);
-
-          if (reason === 'cancel_called' || reason === 'credential_returned') {
-            // Normal flow - credential callback will handle it
+          if (reason === 'credential_returned') {
+            // Success - callback will handle it
           } else {
             cleanup();
-            // User dismissed without selecting account
+            // User dismissed - no error message needed
           }
         }
       });
-
-      // Popup fallback function using OAuth 2.0 implicit flow
-      const openGooglePopup = () => {
-        try {
-          const redirectUri = window.location.origin;
-          const scope = 'email profile openid';
-          const responseType = 'id_token';
-          const nonce = Math.random().toString(36).substring(2, 15);
-
-          // Store nonce to verify later
-          sessionStorage.setItem('google_auth_nonce', nonce);
-
-          const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-            `client_id=${encodeURIComponent(clientId)}` +
-            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-            `&response_type=${responseType}` +
-            `&scope=${encodeURIComponent(scope)}` +
-            `&nonce=${nonce}` +
-            `&prompt=select_account`;
-
-          // Open popup
-          const width = 500;
-          const height = 600;
-          const left = window.screenX + (window.outerWidth - width) / 2;
-          const top = window.screenY + (window.outerHeight - height) / 2;
-
-          const popup = window.open(
-            authUrl,
-            'google-signin',
-            `width=${width},height=${height},left=${left},top=${top},popup=1`
-          );
-
-          if (!popup || popup.closed) {
-            cleanup();
-            setError('Popup was blocked. Please allow popups for this site and try again, or use email sign-in.');
-            return;
-          }
-
-          // Poll for popup close and check for token in URL
-          const pollInterval = setInterval(() => {
-            try {
-              if (popup.closed) {
-                clearInterval(pollInterval);
-                cleanup();
-                return;
-              }
-
-              // Try to get the URL (will fail due to same-origin until redirected back)
-              const popupUrl = popup.location.href;
-              if (popupUrl && popupUrl.startsWith(redirectUri)) {
-                clearInterval(pollInterval);
-                popup.close();
-
-                // Extract id_token from URL fragment
-                const hash = popupUrl.split('#')[1];
-                if (hash) {
-                  const params = new URLSearchParams(hash);
-                  const idToken = params.get('id_token');
-
-                  if (idToken) {
-                    // Decode and process the token
-                    const payload = JSON.parse(atob(idToken.split('.')[1]));
-
-                    oauthLogin({
-                      email: payload.email,
-                      fullName: payload.name,
-                      provider: 'google',
-                      providerId: payload.sub
-                    }).then(result => {
-                      clearTimeout(timeoutId);
-                      setOauthLoading(null);
-                      if (result.success) {
-                        setSuccess('Signed in with Google!');
-                        handleSuccess();
-                      } else {
-                        setError(result.message);
-                      }
-                    });
-                  } else {
-                    cleanup();
-                    setError('Google Sign-In did not return credentials. Please try again.');
-                  }
-                } else {
-                  cleanup();
-                  setError('Google Sign-In was cancelled.');
-                }
-              }
-            } catch (e) {
-              // Cross-origin error expected until redirect - ignore
-            }
-          }, 500);
-
-          // Stop polling after timeout
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            if (!popup.closed) {
-              popup.close();
-            }
-          }, 120000); // 2 minute max for popup
-
-        } catch (popupError) {
-          console.error('Google popup error:', popupError);
-          cleanup();
-          setError('Popup was blocked. Please allow popups for this site or use email sign-in.');
-        }
-      };
 
     } catch (err) {
       console.error('Google Sign-In error:', err);
@@ -494,7 +386,7 @@ export const AuthModal: React.FC = () => {
             {/* Options View */}
             {view === 'options' && (
               <div className="space-y-3">
-                {/* Google Button */}
+                {/* Google Button - Always show styled button */}
                 <button
                   onClick={handleGoogleSignIn}
                   disabled={oauthLoading !== null}
@@ -507,7 +399,17 @@ export const AuthModal: React.FC = () => {
                   )}
                   Continue with Google
                 </button>
-                <div id="google-signin-btn" className="hidden" />
+
+                {/* Native Google Button - Show if One Tap failed */}
+                {showNativeGoogleBtn && (
+                  <div className="w-full">
+                    <p className="text-xs text-white/50 mb-2 text-center">Or use Google's sign-in button</p>
+                    <div 
+                      ref={googleBtnRef}
+                      className="w-full flex justify-center min-h-[44px]"
+                    />
+                  </div>
+                )}
 
                 {/* Apple Button */}
                 <button
