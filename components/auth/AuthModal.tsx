@@ -9,22 +9,24 @@ import {
   AlertCircle, CheckCircle2, Loader2, ArrowLeft
 } from 'lucide-react';
 
-// Google Icon
-const GoogleIcon = () => (
-  <svg className="h-5 w-5" viewBox="0 0 24 24">
-    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-  </svg>
-);
-
 // Apple Icon
 const AppleIcon = () => (
   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
   </svg>
 );
+
+const decodeJwtPayload = (token: string) => {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    return JSON.parse(atob(padded));
+  } catch (error) {
+    return null;
+  }
+};
 
 type AuthView = 'options' | 'email-login' | 'email-signup';
 
@@ -44,12 +46,11 @@ export const AuthModal: React.FC = () => {
 
   const [view, setView] = useState<AuthView>('options');
   const [isLoading, setIsLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
+  const [oauthLoading, setOauthLoading] = useState<'apple' | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [googleBtnReady, setGoogleBtnReady] = useState(false);
-  const [googleInitialized, setGoogleInitialized] = useState(false);
   const googleBtnRef = React.useRef<HTMLDivElement>(null);
 
   // Form state
@@ -84,51 +85,29 @@ export const AuthModal: React.FC = () => {
 
     const initGoogleButton = () => {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      if (!clientId) return;
+      if (!clientId) {
+        setError('Google Sign-In is not configured. Please try email sign-in.');
+        return;
+      }
 
       const google = (window as any).google;
       if (!google?.accounts?.id) return;
 
-      // Handle credential response
-      const handleCredentialResponse = async (response: any) => {
-        if (!response?.credential) {
-          setError('Google Sign-In did not return credentials. Please try again.');
-          return;
-        }
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const loginUri = apiUrl.startsWith('http')
+        ? `${apiUrl}/auth/google/callback`
+        : `${window.location.origin}${apiUrl}/auth/google/callback`;
+      const state = pendingDemoRedirect
+        || `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
-        setOauthLoading('google');
-        try {
-          const payload = JSON.parse(atob(response.credential.split('.')[1]));
-          const result = await oauthLogin({
-            email: payload.email,
-            fullName: payload.name,
-            provider: 'google',
-            providerId: payload.sub
-          });
-
-          if (result.success) {
-            setSuccess('Signed in with Google!');
-            handleSuccess();
-          } else {
-            setError(result.message);
-          }
-        } catch (err) {
-          setError('Failed to process Google Sign-In. Please try again.');
-        } finally {
-          setOauthLoading(null);
-        }
-      };
-
-      // Initialize
       google.accounts.id.initialize({
         client_id: clientId,
-        callback: handleCredentialResponse,
+        ux_mode: 'redirect',
+        login_uri: loginUri,
+        state,
         auto_select: false,
-        cancel_on_tap_outside: true,
-        ux_mode: 'popup',
+        cancel_on_tap_outside: false,
       });
-      
-      setGoogleInitialized(true);
 
       // Render button
       setTimeout(() => {
@@ -161,7 +140,7 @@ export const AuthModal: React.FC = () => {
       // Cleanup after 5 seconds
       setTimeout(() => clearInterval(checkGoogle), 5000);
     }
-  }, [showAuthModal, view]);
+  }, [showAuthModal, view, pendingDemoRedirect]);
 
   // Handle escape key
   useEffect(() => {
@@ -188,93 +167,6 @@ export const AuthModal: React.FC = () => {
     }, 500);
   };
 
-  // Manual Google Sign-In (when native button hasn't loaded yet)
-  const handleManualGoogleSignIn = async () => {
-    setOauthLoading('google');
-    setError('');
-
-    try {
-      const google = (window as any).google;
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
-      if (!clientId) {
-        setError('Google Sign-In is not configured. Please try email sign-in.');
-        setOauthLoading(null);
-        return;
-      }
-
-      if (google?.accounts?.id) {
-        // Initialize if not already done
-        if (!googleInitialized) {
-          google.accounts.id.initialize({
-            client_id: clientId,
-            callback: async (response: any) => {
-              if (!response?.credential) {
-                setError('Google Sign-In did not return credentials. Please try again.');
-                setOauthLoading(null);
-                return;
-              }
-
-              try {
-                const payload = JSON.parse(atob(response.credential.split('.')[1]));
-                const result = await oauthLogin({
-                  email: payload.email,
-                  fullName: payload.name,
-                  provider: 'google',
-                  providerId: payload.sub
-                });
-
-                if (result.success) {
-                  setSuccess('Signed in with Google!');
-                  handleSuccess();
-                } else {
-                  setError(result.message);
-                }
-              } catch (err) {
-                setError('Failed to process Google Sign-In. Please try again.');
-              } finally {
-                setOauthLoading(null);
-              }
-            },
-            auto_select: false,
-            cancel_on_tap_outside: false,
-            ux_mode: 'popup',
-          });
-          setGoogleInitialized(true);
-        }
-
-        // Trigger the Google One Tap / popup
-        google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed()) {
-            // One Tap can't be displayed, show error with guidance
-            const reason = notification.getNotDisplayedReason();
-            console.log('Google One Tap not displayed:', reason);
-            
-            if (reason === 'opt_out_or_no_session') {
-              setError('Please sign in to your Google account in this browser first, then try again.');
-            } else if (reason === 'suppressed_by_user') {
-              setError('Google Sign-In was previously dismissed. Please use email sign-in or clear browser data.');
-            } else {
-              setError('Google Sign-In is not available. Please use email sign-in.');
-            }
-            setOauthLoading(null);
-          } else if (notification.isSkippedMoment()) {
-            // User closed or skipped
-            setOauthLoading(null);
-          }
-          // If displayed, wait for callback
-        });
-      } else {
-        setError('Google Sign-In is still loading. Please wait a moment and try again.');
-        setOauthLoading(null);
-      }
-    } catch (err) {
-      console.error('Google Sign-In error:', err);
-      setError('Google Sign-In failed. Please try email sign-in.');
-      setOauthLoading(null);
-    }
-  };
-
   // Apple Sign-In
   const handleAppleSignIn = async () => {
     setOauthLoading('apple');
@@ -296,14 +188,26 @@ export const AuthModal: React.FC = () => {
       });
 
       const response = await AppleID.auth.signIn();
+      const idToken = response.authorization?.id_token;
+      const tokenPayload = idToken ? decodeJwtPayload(idToken) : null;
+
+      const email = response.user?.email || tokenPayload?.email || '';
+      const fullName = response.user?.name?.firstName
+        ? `${response.user.name.firstName} ${response.user.name.lastName || ''}`.trim()
+        : tokenPayload?.name || '';
+      const providerId = tokenPayload?.sub || response.user?.id || '';
+
+      if (!email || !providerId) {
+        setError('Apple Sign-In did not return required profile information.');
+        setOauthLoading(null);
+        return;
+      }
 
       const result = await oauthLogin({
-        email: response.user?.email || '',
-        fullName: response.user?.name?.firstName
-          ? `${response.user.name.firstName} ${response.user.name.lastName || ''}`.trim()
-          : '',
+        email,
+        fullName,
         provider: 'apple',
-        providerId: response.user?.id || response.authorization?.id_token
+        providerId
       });
 
       if (result.success) {
@@ -447,16 +351,11 @@ export const AuthModal: React.FC = () => {
                 <div className="w-full">
                   {!googleBtnReady ? (
                     <button
-                      onClick={handleManualGoogleSignIn}
-                      disabled={oauthLoading === 'google'}
-                      className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-300 disabled:opacity-50"
+                      disabled
+                      className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 opacity-70 cursor-not-allowed"
                     >
-                      {oauthLoading === 'google' ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <GoogleIcon />
-                      )}
-                      Continue with Google
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Loading Google Sign-In...
                     </button>
                   ) : (
                     <div 
