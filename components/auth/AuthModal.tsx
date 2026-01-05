@@ -75,7 +75,8 @@ export const AuthModal: React.FC = () => {
       setCompany('');
       setPhone('');
       setAgreeToTerms(false);
-      setGoogleBtnReady(false);
+      const isGoogleReady = typeof window !== 'undefined' && (window as any).google?.accounts?.id;
+      setGoogleBtnReady(!!isGoogleReady);
     }
   }, [showAuthModal, authModalMode]);
 

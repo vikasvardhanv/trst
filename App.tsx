@@ -91,6 +91,24 @@ const ScrollToTop = () => {
   return null;
 };
 
+const GoogleSignInWarmup: React.FC = () => {
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if ((window as any).google?.accounts?.id) return;
+
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }, []);
+
+  return null;
+};
+
 // Animated routes wrapper
 const AnimatedRoutes: React.FC = () => {
   const location = useLocation();
@@ -176,6 +194,7 @@ function App() {
       <AuthProvider>
         <CookieConsentProvider>
           <ScrollToTop />
+          <GoogleSignInWarmup />
           <div className="w-full min-h-screen bg-gray-900 text-white">
             <Suspense fallback={<LoadingSpinner />}>
               <AnimatedRoutes />
