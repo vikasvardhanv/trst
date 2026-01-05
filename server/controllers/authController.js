@@ -398,3 +398,138 @@ export const verifyToken = async (req, res) => {
     }
   });
 };
+
+// ==========================================
+// Google OAuth 2.0 Authorization Code Flow
+// ==========================================
+
+const getGoogleOAuthConfig = () => ({
+  clientId: process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  redirectUri: `${process.env.FRONTEND_URL || 'https://highshiftmedia.com'}/api/auth/google/callback`
+});
+
+// Step 1: Redirect user to Google's OAuth consent screen
+export const googleAuthRedirect = (req, res) => {
+  try {
+    const { clientId, redirectUri } = getGoogleOAuthConfig();
+    
+    if (!clientId) {
+      logger.auth('Google OAuth: Missing client ID', false);
+      return res.status(500).json({ success: false, message: 'Google Sign-In not configured' });
+    }
+
+    // Get the page user was on (to redirect back after auth)
+    const returnTo = req.query.returnTo || '/';
+    
+    // Build Google OAuth URL
+    const googleAuthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    googleAuthUrl.searchParams.set('client_id', clientId);
+    googleAuthUrl.searchParams.set('redirect_uri', redirectUri);
+    googleAuthUrl.searchParams.set('response_type', 'code');
+    googleAuthUrl.searchParams.set('scope', 'openid email profile');
+    googleAuthUrl.searchParams.set('access_type', 'offline');
+    googleAuthUrl.searchParams.set('prompt', 'select_account');
+    googleAuthUrl.searchParams.set('state', returnTo); // Pass return URL as state
+
+    logger.auth('Google OAuth: Redirecting to consent screen', true);
+    res.redirect(googleAuthUrl.toString());
+  } catch (error) {
+    logger.auth('Google OAuth redirect failed', false, { error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to initiate Google Sign-In' });
+  }
+};
+
+// Step 2: Handle callback from Google with authorization code
+export const googleAuthCallback = async (req, res) => {
+  try {
+    const { code, state, error: oauthError } = req.query;
+    const { clientId, clientSecret, redirectUri } = getGoogleOAuthConfig();
+    const frontendUrl = process.env.FRONTEND_URL || 'https://highshiftmedia.com';
+
+    // Handle OAuth errors
+    if (oauthError) {
+      logger.auth('Google OAuth error from Google', false, { error: oauthError });
+      return res.redirect(`${frontendUrl}?auth_error=${encodeURIComponent(oauthError)}`);
+    }
+
+    if (!code) {
+      logger.auth('Google OAuth: No authorization code received', false);
+      return res.redirect(`${frontendUrl}?auth_error=no_code`);
+    }
+
+    if (!clientSecret) {
+      logger.auth('Google OAuth: Missing client secret', false);
+      return res.redirect(`${frontendUrl}?auth_error=config_error`);
+    }
+
+    // Exchange authorization code for tokens
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code'
+      })
+    });
+
+    const tokens = await tokenResponse.json();
+
+    if (tokens.error) {
+      logger.auth('Google OAuth token exchange failed', false, { error: tokens.error });
+      return res.redirect(`${frontendUrl}?auth_error=token_exchange_failed`);
+    }
+
+    // Verify the ID token and get user info
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: clientId
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload?.email) {
+      return res.redirect(`${frontendUrl}?auth_error=no_email`);
+    }
+
+    if (payload.email_verified === false) {
+      return res.redirect(`${frontendUrl}?auth_error=email_not_verified`);
+    }
+
+    // Find or create user
+    let user = await User.findByEmail(payload.email);
+    if (user) {
+      await User.updateLastLogin(user.id);
+    } else {
+      user = await User.createOAuthUser({
+        email: payload.email,
+        fullName: payload.name || payload.email.split('@')[0],
+        provider: 'google',
+        providerId: payload.sub
+      });
+    }
+
+    // Generate JWT token
+    const token = generateToken(user.id);
+    const authUser = {
+      id: user.id,
+      email: user.email,
+      fullName: user.full_name,
+      company: user.company,
+      role: user.role
+    };
+
+    // Redirect back to frontend with auth data
+    const returnTo = sanitizeRedirectPath(state);
+    logger.auth('Google OAuth: Login successful', true, { email: user.email });
+    
+    return sendOAuthRedirectPage(res, token, authUser, `${frontendUrl}${returnTo}`);
+  } catch (error) {
+    logger.auth('Google OAuth callback failed', false, { error: error.message });
+    const frontendUrl = process.env.FRONTEND_URL || 'https://highshiftmedia.com';
+    return res.redirect(`${frontendUrl}?auth_error=callback_failed`);
+  }
+};

@@ -26,18 +26,6 @@ const AppleIcon = () => (
   </svg>
 );
 
-const decodeJwtPayload = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    if (!base64Url) return null;
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-    return JSON.parse(atob(padded));
-  } catch (error) {
-    return null;
-  }
-};
-
 type AuthView = 'options' | 'email-login' | 'email-signup';
 
 export const AuthModal: React.FC = () => {
@@ -48,7 +36,6 @@ export const AuthModal: React.FC = () => {
     setAuthModalMode,
     login,
     signup,
-    oauthLogin,
   } = useAuth();
 
   const [view, setView] = useState<AuthView>('options');
@@ -57,8 +44,6 @@ export const AuthModal: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [googleBtnReady, setGoogleBtnReady] = useState(false);
-  const googleBtnRef = React.useRef<HTMLDivElement>(null);
 
   // Form state
   const [email, setEmail] = useState('');
@@ -82,114 +67,29 @@ export const AuthModal: React.FC = () => {
       setCompany('');
       setPhone('');
       setAgreeToTerms(false);
-      setGoogleBtnReady(false);
     }
   }, [showAuthModal, authModalMode]);
 
-  // Handle Google credential response
-  const handleGoogleCredentialResponse = async (response: any) => {
-    setOauthLoading('google');
-    setError('');
-
-    try {
-      const credential = response.credential;
-      if (!credential) {
-        setError('Google Sign-In failed. No credential received.');
-        setOauthLoading(null);
-        return;
-      }
-
-      // Decode the JWT token to get user info
-      const payload = decodeJwtPayload(credential);
-      if (!payload) {
-        setError('Google Sign-In failed. Invalid credential.');
-        setOauthLoading(null);
-        return;
-      }
-
-      const email = payload.email || '';
-      const fullName = payload.name || '';
-      const providerId = payload.sub || '';
-
-      if (!email || !providerId) {
-        setError('Google Sign-In did not return required profile information.');
-        setOauthLoading(null);
-        return;
-      }
-
-      const result = await oauthLogin({
-        email,
-        fullName,
-        provider: 'google',
-        providerId
-      });
-
-      if (result.success) {
-        setSuccess('Signed in with Google!');
-        handleSuccess();
-      } else {
-        setError(result.message);
-      }
-    } catch (err: any) {
-      console.error('Google Sign-In error:', err);
-      setError('Google Sign-In failed. Please try again.');
-    }
-    setOauthLoading(null);
-  };
-
-  // Initialize Google Sign-In button when modal opens
+  // Check for auth errors in URL (from OAuth redirect)
   useEffect(() => {
-    if (!showAuthModal || view !== 'options') return;
-
-    const initGoogleButton = () => {
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      if (!clientId) {
-        setError('Google Sign-In is not configured. Please try email sign-in.');
-        return;
-      }
-
-      const google = (window as any).google;
-      if (!google?.accounts?.id) return;
-
-      google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: false,
-      });
-
-      // Render the actual Google button
-      setTimeout(() => {
-        if (googleBtnRef.current) {
-          googleBtnRef.current.innerHTML = '';
-          google.accounts.id.renderButton(googleBtnRef.current, {
-            type: 'standard',
-            theme: 'outline',
-            size: 'large',
-            width: 380,
-            text: 'continue_with',
-            shape: 'pill',
-            logo_alignment: 'left'
-          });
-          setGoogleBtnReady(true);
-        }
-      }, 100);
-    };
-
-    // Wait for Google script to load
-    if ((window as any).google?.accounts?.id) {
-      initGoogleButton();
-    } else {
-      const checkGoogle = setInterval(() => {
-        if ((window as any).google?.accounts?.id) {
-          clearInterval(checkGoogle);
-          initGoogleButton();
-        }
-      }, 100);
-      // Cleanup after 5 seconds
-      setTimeout(() => clearInterval(checkGoogle), 5000);
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get('auth_error');
+    if (authError) {
+      const errorMessages: Record<string, string> = {
+        'no_code': 'Google Sign-In was cancelled.',
+        'token_exchange_failed': 'Failed to authenticate with Google. Please try again.',
+        'no_email': 'Google did not provide an email address.',
+        'email_not_verified': 'Please verify your Google email first.',
+        'config_error': 'Google Sign-In is not properly configured.',
+        'callback_failed': 'Authentication failed. Please try again.',
+        'access_denied': 'Access was denied. Please try again.'
+      };
+      setError(errorMessages[authError] || 'Google Sign-In failed. Please try again.');
+      setShowAuthModal(true);
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [showAuthModal, view]);
+  }, [setShowAuthModal]);
 
   // Handle escape key
   useEffect(() => {
@@ -212,7 +112,20 @@ export const AuthModal: React.FC = () => {
     }, 500);
   };
 
-  // Apple Sign-In
+  // Google Sign-In - Server-side Authorization Code Flow
+  const handleGoogleSignIn = () => {
+    setOauthLoading('google');
+    setError('');
+    
+    // Get current path to return to after auth
+    const returnTo = encodeURIComponent(window.location.pathname);
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    
+    // Redirect to server endpoint which will redirect to Google
+    window.location.href = `${apiUrl}/auth/google?returnTo=${returnTo}`;
+  };
+
+  // Apple Sign-In (keeping client-side for now)
   const handleAppleSignIn = async () => {
     setOauthLoading('apple');
     setError('');
@@ -225,48 +138,14 @@ export const AuthModal: React.FC = () => {
         return;
       }
 
-      AppleID.auth.init({
-        clientId: import.meta.env.VITE_APPLE_CLIENT_ID,
-        scope: 'name email',
-        redirectURI: window.location.origin,
-        usePopup: true
-      });
-
-      const response = await AppleID.auth.signIn();
-      const idToken = response.authorization?.id_token;
-      const tokenPayload = idToken ? decodeJwtPayload(idToken) : null;
-
-      const email = response.user?.email || tokenPayload?.email || '';
-      const fullName = response.user?.name?.firstName
-        ? `${response.user.name.firstName} ${response.user.name.lastName || ''}`.trim()
-        : tokenPayload?.name || '';
-      const providerId = tokenPayload?.sub || response.user?.id || '';
-
-      if (!email || !providerId) {
-        setError('Apple Sign-In did not return required profile information.');
-        setOauthLoading(null);
-        return;
-      }
-
-      const result = await oauthLogin({
-        email,
-        fullName,
-        provider: 'apple',
-        providerId
-      });
-
-      if (result.success) {
-        setSuccess('Signed in with Apple!');
-        handleSuccess();
-      } else {
-        setError(result.message);
-      }
+      setError('Apple Sign-In coming soon. Please use Google or Email.');
+      setOauthLoading(null);
     } catch (err: any) {
       if (err.error !== 'popup_closed_by_user') {
         setError('Apple Sign-In failed. Please try email sign-in.');
       }
+      setOauthLoading(null);
     }
-    setOauthLoading(null);
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -392,18 +271,24 @@ export const AuthModal: React.FC = () => {
             {/* Options View */}
             {view === 'options' && (
               <div className="space-y-3">
-                {/* Google Sign-In Button */}
-                {oauthLoading === 'google' ? (
-                  <div className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-medium rounded-xl border border-gray-200 h-12">
-                    <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
-                    <span>Signing in...</span>
-                  </div>
-                ) : (
-                  <div
-                    ref={googleBtnRef}
-                    className="w-full flex items-center justify-center rounded-xl overflow-hidden [&>div]:!w-full [&>div>div]:!rounded-xl"
-                  />
-                )}
+                {/* Google Sign-In Button - Server-side redirect */}
+                <button
+                  onClick={handleGoogleSignIn}
+                  disabled={oauthLoading !== null}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-medium rounded-xl hover:bg-gray-100 transition-colors border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {oauthLoading === 'google' ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+                      <span>Redirecting to Google...</span>
+                    </>
+                  ) : (
+                    <>
+                      <GoogleIcon />
+                      <span>Continue with Google</span>
+                    </>
+                  )}
+                </button>
 
                 {/* Apple Button */}
                 <button
