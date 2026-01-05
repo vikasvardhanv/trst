@@ -20,8 +20,7 @@ interface ChatMessage {
 
 interface EmailConfig {
   sheetUrl: string;
-  subject: string;
-  body: string;
+  docTemplateUrl: string;
   senderName: string;
   senderEmail: string;
 }
@@ -64,7 +63,7 @@ const industryPresets = [
 ];
 
 // Email chat flow stages
-type ChatStage = 'idle' | 'awaiting_subject' | 'awaiting_body' | 'awaiting_sender_name' | 'awaiting_sender_email' | 'confirming' | 'sending' | 'complete';
+type ChatStage = 'idle' | 'awaiting_doc_template' | 'awaiting_sender_name' | 'awaiting_sender_email' | 'confirming' | 'sending' | 'complete';
 
 export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart }) => {
   const [query, setQuery] = useState('');
@@ -87,8 +86,7 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
   const [chatStage, setChatStage] = useState<ChatStage>('idle');
   const [emailConfig, setEmailConfig] = useState<EmailConfig>({
     sheetUrl: '',
-    subject: '',
-    body: '',
+    docTemplateUrl: '',
     senderName: '',
     senderEmail: ''
   });
@@ -157,10 +155,10 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
   // Start email chat flow
   const startEmailChat = () => {
     setShowEmailChat(true);
-    setChatStage('awaiting_subject');
+    setChatStage('awaiting_doc_template');
     const initialMessage: ChatMessage = {
       role: 'assistant',
-      content: `📧 Let's set up your email campaign!\n\nI have your leads ready in the spreadsheet. Now I'll help you compose and send personalized emails to all of them.\n\n**What should be the email subject line?**\n\n_Tip: Keep it short and compelling to improve open rates._`,
+      content: `📧 Let's set up your email campaign!\n\nI have your leads ready in the spreadsheet:\n📋 ${sheetUrl || 'Sheet loaded'}\n\nNow I need your **email template document URL** (Google Doc link).\n\n_The template should contain your email content with placeholders like {{name}}, {{company}}, etc._`,
       timestamp: new Date()
     };
     setChatMessages([initialMessage]);
@@ -182,16 +180,14 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
     let assistantResponse = '';
 
     switch (chatStage) {
-      case 'awaiting_subject':
-        setEmailConfig(prev => ({ ...prev, subject: input }));
-        assistantResponse = `✅ Subject line set: "${input}"\n\n**Now, what should be the email body?**\n\n_You can use placeholders like {name} for the business name. Write your message naturally._`;
-        setChatStage('awaiting_body');
-        break;
-
-      case 'awaiting_body':
-        setEmailConfig(prev => ({ ...prev, body: input }));
-        assistantResponse = `✅ Email body saved!\n\n**What's your name?** (This will appear as the sender name)`;
-        setChatStage('awaiting_sender_name');
+      case 'awaiting_doc_template':
+        if (!input.includes('docs.google.com') && !input.includes('drive.google.com') && !input.startsWith('http')) {
+          assistantResponse = `⚠️ Please provide a valid Google Doc or document URL.\n\n_Example: https://docs.google.com/document/d/..._`;
+        } else {
+          setEmailConfig(prev => ({ ...prev, docTemplateUrl: input }));
+          assistantResponse = `✅ Template saved!\n\n**What's your name?** (This will appear as the sender name)`;
+          setChatStage('awaiting_sender_name');
+        }
         break;
 
       case 'awaiting_sender_name':
@@ -206,7 +202,7 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
         } else {
           setEmailConfig(prev => ({ ...prev, senderEmail: input }));
           const config = { ...emailConfig, senderEmail: input };
-          assistantResponse = `✅ Perfect! Here's your email campaign summary:\n\n📋 **Sheet URL:** ${sheetUrl || 'Loaded from scrape'}\n📧 **Subject:** ${config.subject}\n✉️ **From:** ${config.senderName} <${input}>\n📝 **Body Preview:**\n"${config.body.substring(0, 100)}${config.body.length > 100 ? '...' : ''}"\n\n**Ready to send emails to ${leads.length} leads?**\n\nType **"yes"** to confirm and send, or **"edit"** to start over.`;
+          assistantResponse = `✅ Perfect! Here's your email campaign summary:\n\n📋 **Leads Sheet:** ${sheetUrl || 'Loaded'}\n📄 **Email Template:** ${config.docTemplateUrl}\n✉️ **From:** ${config.senderName} <${input}>\n📊 **Recipients:** ${leads.length} leads\n\n**Ready to send emails?**\n\nType **"yes"** to confirm and send, or **"edit"** to start over.`;
           setChatStage('confirming');
         }
         break;
@@ -214,12 +210,12 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
       case 'confirming':
         if (input.toLowerCase() === 'yes' || input.toLowerCase() === 'send') {
           setChatStage('sending');
-          assistantResponse = '🚀 Sending emails now...';
+          assistantResponse = '🚀 Sending to backend for processing...';
           setTimeout(() => sendEmails(), 100);
         } else if (input.toLowerCase() === 'edit' || input.toLowerCase() === 'no') {
-          setChatStage('awaiting_subject');
-          setEmailConfig({ sheetUrl: sheetUrl, subject: '', body: '', senderName: '', senderEmail: '' });
-          assistantResponse = `No problem! Let's start over.\n\n**What should be the email subject line?**`;
+          setChatStage('awaiting_doc_template');
+          setEmailConfig({ sheetUrl: sheetUrl, docTemplateUrl: '', senderName: '', senderEmail: '' });
+          assistantResponse = `No problem! Let's start over.\n\n**Please provide your email template document URL:**`;
         } else {
           assistantResponse = `Please type **"yes"** to send the emails or **"edit"** to start over.`;
         }
@@ -248,8 +244,7 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
         },
         body: JSON.stringify({
           sheet_url: sheetUrl || emailConfig.sheetUrl,
-          subject: emailConfig.subject,
-          body: emailConfig.body,
+          doc_template_url: emailConfig.docTemplateUrl,
           sender_name: emailConfig.senderName,
           sender_email: emailConfig.senderEmail,
         }),
@@ -258,10 +253,10 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
       const data = await response.json();
       
       if (response.ok) {
-        setEmailResult({ success: true, message: data.message || `Successfully sent emails to ${leads.length} leads!` });
+        setEmailResult({ success: true, message: data.message || `Successfully queued emails for ${leads.length} leads!` });
         const successMessage: ChatMessage = {
           role: 'assistant',
-          content: `🎉 **Emails sent successfully!**\n\n${data.message || `Sent to ${leads.length} leads.`}\n\nYour campaign is now live. Replies will go to ${emailConfig.senderEmail}.`,
+          content: `🎉 **Campaign submitted successfully!**\n\n${data.message || `Processing ${leads.length} leads.`}\n\nThe backend is now handling your email campaign. Replies will go to ${emailConfig.senderEmail}.`,
           timestamp: new Date()
         };
         setChatMessages(prev => [...prev, successMessage]);
@@ -274,7 +269,7 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
       setEmailResult({ success: false, message: err.message });
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: `❌ **Error sending emails:**\n\n${err.message}\n\nPlease try again or check your configuration.`,
+        content: `❌ **Error submitting campaign:**\n\n${err.message}\n\nPlease try again or check your configuration.`,
         timestamp: new Date()
       };
       setChatMessages(prev => [...prev, errorMessage]);
@@ -828,8 +823,7 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder={
-                      chatStage === 'awaiting_subject' ? 'Enter email subject...' :
-                      chatStage === 'awaiting_body' ? 'Write your email message...' :
+                      chatStage === 'awaiting_doc_template' ? 'Paste your Google Doc template URL...' :
                       chatStage === 'awaiting_sender_name' ? 'Your name...' :
                       chatStage === 'awaiting_sender_email' ? 'your@email.com' :
                       chatStage === 'confirming' ? 'Type "yes" to send or "edit" to change...' :
@@ -855,14 +849,14 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-emerald-400">
                     <CheckCircle2 className="w-5 h-5" />
-                    <span className="font-medium">Campaign sent successfully!</span>
+                    <span className="font-medium">Campaign submitted successfully!</span>
                   </div>
                   <button
                     onClick={() => {
                       setShowEmailChat(false);
                       setChatMessages([]);
                       setChatStage('idle');
-                      setEmailConfig({ sheetUrl: '', subject: '', body: '', senderName: '', senderEmail: '' });
+                      setEmailConfig({ sheetUrl: '', docTemplateUrl: '', senderName: '', senderEmail: '' });
                     }}
                     className="text-sm text-white/60 hover:text-white transition"
                   >
