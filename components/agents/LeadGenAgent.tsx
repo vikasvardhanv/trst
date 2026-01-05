@@ -4,11 +4,27 @@ import {
   Search, MapPin, Building2, Phone, Mail, Globe, Star, 
   Download, Loader2, AlertCircle, CheckCircle2, 
   Sparkles, Target, Users, ArrowRight, RefreshCw,
-  ExternalLink, Copy, Filter, Zap
+  ExternalLink, Copy, Filter, Zap, Send, MessageSquare,
+  FileSpreadsheet, Bot, User
 } from 'lucide-react';
 
-// API endpoint for lead scraper
-const API_ENDPOINT = 'https://vikasvardhanv--gmaps-lead-scraper-fastapi-app.modal.run';
+// API endpoints
+const SCRAPER_API = 'https://vikasvardhanv--gmaps-lead-scraper-fastapi-app.modal.run';
+const EMAIL_API = 'https://vikasvardhanv--lead-gen-email-sender-fastapi-app.modal.run';
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+interface EmailConfig {
+  sheetUrl: string;
+  subject: string;
+  body: string;
+  senderName: string;
+  senderEmail: string;
+}
 
 interface Lead {
   name: string;
@@ -47,6 +63,9 @@ const industryPresets = [
   { label: 'Hotels', query: 'hotels', icon: '🏨' },
 ];
 
+// Email chat flow stages
+type ChatStage = 'idle' | 'awaiting_subject' | 'awaiting_body' | 'awaiting_sender_name' | 'awaiting_sender_email' | 'confirming' | 'sending' | 'complete';
+
 export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart }) => {
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState('');
@@ -59,6 +78,23 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const resultsRef = useRef<HTMLDivElement>(null);
+  
+  // Sheet URL and Email Chat State
+  const [sheetUrl, setSheetUrl] = useState('');
+  const [showEmailChat, setShowEmailChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatStage, setChatStage] = useState<ChatStage>('idle');
+  const [emailConfig, setEmailConfig] = useState<EmailConfig>({
+    sheetUrl: '',
+    subject: '',
+    body: '',
+    senderName: '',
+    senderEmail: ''
+  });
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailResult, setEmailResult] = useState<{ success: boolean; message: string } | null>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = async () => {
     if (!query.trim() || !location.trim()) {
@@ -70,9 +106,13 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
     setError('');
     setLeads([]);
     setSelectedLeads(new Set());
+    setSheetUrl('');
+    setShowEmailChat(false);
+    setChatMessages([]);
+    setChatStage('idle');
 
     try {
-      const response = await fetch(`${API_ENDPOINT}/scrape`, {
+      const response = await fetch(`${SCRAPER_API}/scrape`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,6 +133,11 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
       
       if (data.leads && Array.isArray(data.leads)) {
         setLeads(data.leads);
+        // Check if sheet_url is returned
+        if (data.sheet_url) {
+          setSheetUrl(data.sheet_url);
+          setEmailConfig(prev => ({ ...prev, sheetUrl: data.sheet_url }));
+        }
         // Add to search history
         const searchTerm = `${query} in ${location}`;
         setSearchHistory(prev => [searchTerm, ...prev.filter(s => s !== searchTerm)].slice(0, 5));
@@ -108,6 +153,143 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
       setIsLoading(false);
     }
   };
+
+  // Start email chat flow
+  const startEmailChat = () => {
+    setShowEmailChat(true);
+    setChatStage('awaiting_subject');
+    const initialMessage: ChatMessage = {
+      role: 'assistant',
+      content: `📧 Let's set up your email campaign!\n\nI have your leads ready in the spreadsheet. Now I'll help you compose and send personalized emails to all of them.\n\n**What should be the email subject line?**\n\n_Tip: Keep it short and compelling to improve open rates._`,
+      timestamp: new Date()
+    };
+    setChatMessages([initialMessage]);
+  };
+
+  // Process chat input based on current stage
+  const handleChatSubmit = async () => {
+    if (!chatInput.trim()) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: chatInput.trim(),
+      timestamp: new Date()
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+    const input = chatInput.trim();
+    setChatInput('');
+
+    let assistantResponse = '';
+
+    switch (chatStage) {
+      case 'awaiting_subject':
+        setEmailConfig(prev => ({ ...prev, subject: input }));
+        assistantResponse = `✅ Subject line set: "${input}"\n\n**Now, what should be the email body?**\n\n_You can use placeholders like {name} for the business name. Write your message naturally._`;
+        setChatStage('awaiting_body');
+        break;
+
+      case 'awaiting_body':
+        setEmailConfig(prev => ({ ...prev, body: input }));
+        assistantResponse = `✅ Email body saved!\n\n**What's your name?** (This will appear as the sender name)`;
+        setChatStage('awaiting_sender_name');
+        break;
+
+      case 'awaiting_sender_name':
+        setEmailConfig(prev => ({ ...prev, senderName: input }));
+        assistantResponse = `✅ Sender name: ${input}\n\n**What's your email address?** (Replies will go to this address)`;
+        setChatStage('awaiting_sender_email');
+        break;
+
+      case 'awaiting_sender_email':
+        if (!input.includes('@')) {
+          assistantResponse = `⚠️ That doesn't look like a valid email. Please enter a valid email address.`;
+        } else {
+          setEmailConfig(prev => ({ ...prev, senderEmail: input }));
+          const config = { ...emailConfig, senderEmail: input };
+          assistantResponse = `✅ Perfect! Here's your email campaign summary:\n\n📋 **Sheet URL:** ${sheetUrl || 'Loaded from scrape'}\n📧 **Subject:** ${config.subject}\n✉️ **From:** ${config.senderName} <${input}>\n📝 **Body Preview:**\n"${config.body.substring(0, 100)}${config.body.length > 100 ? '...' : ''}"\n\n**Ready to send emails to ${leads.length} leads?**\n\nType **"yes"** to confirm and send, or **"edit"** to start over.`;
+          setChatStage('confirming');
+        }
+        break;
+
+      case 'confirming':
+        if (input.toLowerCase() === 'yes' || input.toLowerCase() === 'send') {
+          setChatStage('sending');
+          assistantResponse = '🚀 Sending emails now...';
+          setTimeout(() => sendEmails(), 100);
+        } else if (input.toLowerCase() === 'edit' || input.toLowerCase() === 'no') {
+          setChatStage('awaiting_subject');
+          setEmailConfig({ sheetUrl: sheetUrl, subject: '', body: '', senderName: '', senderEmail: '' });
+          assistantResponse = `No problem! Let's start over.\n\n**What should be the email subject line?**`;
+        } else {
+          assistantResponse = `Please type **"yes"** to send the emails or **"edit"** to start over.`;
+        }
+        break;
+
+      default:
+        assistantResponse = 'Something went wrong. Please try again.';
+    }
+
+    const assistantMessage: ChatMessage = {
+      role: 'assistant',
+      content: assistantResponse,
+      timestamp: new Date()
+    };
+    setChatMessages(prev => [...prev, assistantMessage]);
+  };
+
+  // Send emails via API
+  const sendEmails = async () => {
+    setIsSendingEmail(true);
+    try {
+      const response = await fetch(`${EMAIL_API}/send-emails`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sheet_url: sheetUrl || emailConfig.sheetUrl,
+          subject: emailConfig.subject,
+          body: emailConfig.body,
+          sender_name: emailConfig.senderName,
+          sender_email: emailConfig.senderEmail,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setEmailResult({ success: true, message: data.message || `Successfully sent emails to ${leads.length} leads!` });
+        const successMessage: ChatMessage = {
+          role: 'assistant',
+          content: `🎉 **Emails sent successfully!**\n\n${data.message || `Sent to ${leads.length} leads.`}\n\nYour campaign is now live. Replies will go to ${emailConfig.senderEmail}.`,
+          timestamp: new Date()
+        };
+        setChatMessages(prev => [...prev, successMessage]);
+        setChatStage('complete');
+      } else {
+        throw new Error(data.error || data.detail || 'Failed to send emails');
+      }
+    } catch (err: any) {
+      console.error('Email sending error:', err);
+      setEmailResult({ success: false, message: err.message });
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: `❌ **Error sending emails:**\n\n${err.message}\n\nPlease try again or check your configuration.`,
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+      setChatStage('confirming');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  // Auto-scroll chat
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
 
   const handlePresetClick = (preset: typeof industryPresets[0]) => {
     setQuery(preset.query);
@@ -374,6 +556,35 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
           animate={{ opacity: 1, y: 0 }}
           className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden"
         >
+          {/* Sheet URL Banner */}
+          {sheetUrl && (
+            <div className="p-4 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border-b border-emerald-500/30">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
+                  <div>
+                    <p className="text-white font-medium">Leads saved to spreadsheet!</p>
+                    <a 
+                      href={sheetUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                    >
+                      Open Google Sheet <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(sheetUrl)}
+                  className="flex items-center gap-2 text-sm text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copy Link
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Results Header */}
           <div className="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -385,7 +596,7 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
                 <p className="text-sm text-white/60">{query} in {location}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={selectAllLeads}
                 className="text-sm text-white/60 hover:text-white px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition"
@@ -399,6 +610,15 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
                 <Download className="w-4 h-4" />
                 Export CSV
               </button>
+              {!showEmailChat && (
+                <button
+                  onClick={startEmailChat}
+                  className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2 rounded-lg font-medium transition"
+                >
+                  <Mail className="w-4 h-4" />
+                  Send Emails
+                </button>
+              )}
             </div>
           </div>
 
@@ -512,6 +732,148 @@ export const LeadGenAgent: React.FC<LeadGenAgentProps> = ({ onBack, onRestart })
           </div>
         </motion.div>
       )}
+
+      {/* Email Chat Interface */}
+      <AnimatePresence>
+        {showEmailChat && leads.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="mt-6 bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-emerald-500/30 overflow-hidden"
+          >
+            {/* Chat Header */}
+            <div className="p-4 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border-b border-emerald-500/30 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/20 rounded-lg">
+                  <Bot className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-white">Email Campaign Assistant</h3>
+                  <p className="text-sm text-white/60">Let's compose your outreach emails</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEmailChat(false)}
+                className="text-white/40 hover:text-white p-2 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Chat Messages */}
+            <div 
+              ref={chatRef}
+              className="h-[400px] overflow-y-auto p-4 space-y-4"
+            >
+              {chatMessages.map((msg, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                >
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    msg.role === 'assistant' 
+                      ? 'bg-emerald-500/20' 
+                      : 'bg-violet-500/20'
+                  }`}>
+                    {msg.role === 'assistant' 
+                      ? <Bot className="w-4 h-4 text-emerald-400" />
+                      : <User className="w-4 h-4 text-violet-400" />
+                    }
+                  </div>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    msg.role === 'assistant'
+                      ? 'bg-slate-700/50 text-white'
+                      : 'bg-violet-600 text-white'
+                  }`}>
+                    <div className="whitespace-pre-wrap text-sm" dangerouslySetInnerHTML={{
+                      __html: msg.content
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/_(.*?)_/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br />')
+                    }} />
+                  </div>
+                </motion.div>
+              ))}
+              
+              {/* Sending indicator */}
+              {isSendingEmail && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex gap-3"
+                >
+                  <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div className="bg-slate-700/50 rounded-2xl px-4 py-3 flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
+                    <span className="text-sm text-white/60">Sending emails...</span>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Chat Input */}
+            {chatStage !== 'complete' && chatStage !== 'sending' && (
+              <div className="p-4 border-t border-white/10">
+                <form 
+                  onSubmit={(e) => { e.preventDefault(); handleChatSubmit(); }}
+                  className="flex gap-3"
+                >
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder={
+                      chatStage === 'awaiting_subject' ? 'Enter email subject...' :
+                      chatStage === 'awaiting_body' ? 'Write your email message...' :
+                      chatStage === 'awaiting_sender_name' ? 'Your name...' :
+                      chatStage === 'awaiting_sender_email' ? 'your@email.com' :
+                      chatStage === 'confirming' ? 'Type "yes" to send or "edit" to change...' :
+                      'Type your message...'
+                    }
+                    className="flex-1 bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500 transition"
+                    disabled={isSendingEmail}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!chatInput.trim() || isSendingEmail}
+                    className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl transition flex items-center gap-2"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Completed State */}
+            {chatStage === 'complete' && (
+              <div className="p-4 border-t border-white/10 bg-emerald-500/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-400">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">Campaign sent successfully!</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowEmailChat(false);
+                      setChatMessages([]);
+                      setChatStage('idle');
+                      setEmailConfig({ sheetUrl: '', subject: '', body: '', senderName: '', senderEmail: '' });
+                    }}
+                    className="text-sm text-white/60 hover:text-white transition"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Empty State */}
       {!isLoading && leads.length === 0 && !error && (
