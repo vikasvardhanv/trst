@@ -9,6 +9,7 @@ import { Button } from '../components/ui/Button';
 import { GradientText } from '../components/ui/FloatingElements';
 import { SERVICES } from '../constants';
 import { Service } from '../types';
+import { LeadGenAgent } from '../components/agents/LeadGenAgent';
 import {
   ArrowRight, ChevronRight, Zap, TrendingUp, Clock, Shield, Users,
   MessageSquare, Mic, Video, Mail, Building2, Megaphone, Settings, Lightbulb,
@@ -296,6 +297,7 @@ export const Services: React.FC = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showLeadGenAgent, setShowLeadGenAgent] = useState(false);
 
   // Calculate category counts
   const getCategoryCount = (categoryId: string) => {
@@ -313,9 +315,12 @@ export const Services: React.FC = () => {
   // Handle modal close with escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSelectedService(null);
+      if (e.key === 'Escape') {
+        setSelectedService(null);
+        setShowLeadGenAgent(false);
+      }
     };
-    if (selectedService) {
+    if (selectedService || showLeadGenAgent) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
@@ -323,7 +328,7 @@ export const Services: React.FC = () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
-  }, [selectedService]);
+  }, [selectedService, showLeadGenAgent]);
 
   // Handle URL-based service selection
   useEffect(() => {
@@ -347,6 +352,11 @@ export const Services: React.FC = () => {
   }, [serviceId]);
 
   const handleServiceClick = (service: Service) => {
+    // Special handling for lead_generation - show agent directly
+    if (service.id === 'lead_generation') {
+      setShowLeadGenAgent(true);
+      return;
+    }
     setSelectedService(service);
   };
 
@@ -683,6 +693,33 @@ export const Services: React.FC = () => {
             onDemo={handleDemo}
             onContact={handleContact}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Lead Gen Agent Modal */}
+      <AnimatePresence>
+        {showLeadGenAgent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm overflow-y-auto"
+            onClick={() => setShowLeadGenAgent(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-5xl my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <LeadGenAgent 
+                onBack={() => setShowLeadGenAgent(false)} 
+                onRestart={() => setShowLeadGenAgent(false)} 
+              />
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </Layout>
