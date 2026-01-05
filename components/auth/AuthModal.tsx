@@ -161,16 +161,15 @@ export const AuthModal: React.FC = () => {
         cancel_on_tap_outside: false,
       });
 
-      // Render button
+      // Render button - transparent overlay that captures clicks
       setTimeout(() => {
         if (googleBtnRef.current) {
           googleBtnRef.current.innerHTML = '';
-          const buttonWidth = googleBtnRef.current.offsetWidth || 360;
           google.accounts.id.renderButton(googleBtnRef.current, {
             type: 'standard',
-            theme: 'filled_blue',
+            theme: 'outline',
             size: 'large',
-            width: buttonWidth,
+            width: 400,
             text: 'continue_with',
             shape: 'rectangular',
             logo_alignment: 'left'
@@ -400,51 +399,49 @@ export const AuthModal: React.FC = () => {
             {/* Options View */}
             {view === 'options' && (
               <div className="space-y-3">
-                {/* Google Sign-In Button */}
-                <div className="w-full">
-                  {oauthLoading === 'google' ? (
-                    <button
-                      type="button"
-                      disabled
-                      className="w-full flex items-center justify-center gap-3 px-4 py-3 font-medium rounded-lg border border-gray-300 bg-white text-gray-500 cursor-wait"
-                    >
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Signing in with Google...
-                    </button>
-                  ) : (
-                    <div className="relative w-full">
-                      {/* Fallback button shown while Google SDK loads */}
-                      {!googleBtnReady && (
-                        <button
-                          type="button"
-                          disabled
-                          className="w-full flex items-center justify-center gap-3 px-4 py-3 font-medium rounded-lg border border-gray-300 bg-white/80 text-gray-500 cursor-wait"
-                        >
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          Continue with Google
-                        </button>
-                      )}
-                      {/* Google SDK rendered button */}
-                      <div
-                        ref={googleBtnRef}
-                        className={`w-full ${googleBtnReady ? '' : 'absolute inset-0 opacity-0 pointer-events-none'}`}
-                      />
-                    </div>
-                  )}
+                {/* Google Sign-In Button - Overlay approach for proper click handling */}
+                <div className="relative w-full h-12 group cursor-pointer">
+                  {/* Custom styled button (visual layer) */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-medium rounded-xl border border-gray-200 pointer-events-none transition-colors group-hover:bg-gray-50 ${oauthLoading === 'google' ? 'opacity-50' : ''}`}
+                  >
+                    {oauthLoading === 'google' ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+                        <span>Signing in...</span>
+                      </>
+                    ) : (
+                      <>
+                        <GoogleIcon />
+                        <span>Continue with Google</span>
+                      </>
+                    )}
+                  </div>
+                  {/* Google rendered button (click layer) - transparent overlay */}
+                  <div
+                    ref={googleBtnRef}
+                    className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-xl cursor-pointer [&>div]:!w-full [&>div>div]:!w-full [&_iframe]:!w-full"
+                    style={{ opacity: 0.01 }}
+                  />
                 </div>
 
                 {/* Apple Button */}
                 <button
                   onClick={handleAppleSignIn}
                   disabled={oauthLoading !== null}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-900 transition-colors border border-white/20 disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white font-medium rounded-xl hover:bg-gray-900 transition-colors border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {oauthLoading === 'apple' ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Signing in...</span>
+                    </>
                   ) : (
-                    <AppleIcon />
+                    <>
+                      <AppleIcon />
+                      <span>Continue with Apple</span>
+                    </>
                   )}
-                  Continue with Apple
                 </button>
 
                 {/* Divider */}
@@ -460,10 +457,11 @@ export const AuthModal: React.FC = () => {
                 {/* Email Button */}
                 <button
                   onClick={() => setView(isSignUp ? 'email-signup' : 'email-login')}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/5 text-white font-medium rounded-lg hover:bg-white/10 transition-colors border border-white/10"
+                  disabled={oauthLoading !== null}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white/5 text-white font-medium rounded-xl hover:bg-white/10 transition-colors border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Mail className="h-5 w-5" />
-                  Continue with Email
+                  <span>Continue with Email</span>
                 </button>
 
                 {/* Terms notice */}
