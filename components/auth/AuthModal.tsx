@@ -161,7 +161,7 @@ export const AuthModal: React.FC = () => {
         cancel_on_tap_outside: false,
       });
 
-      // Render button - transparent overlay that captures clicks
+      // Render the actual Google button
       setTimeout(() => {
         if (googleBtnRef.current) {
           googleBtnRef.current.innerHTML = '';
@@ -169,9 +169,9 @@ export const AuthModal: React.FC = () => {
             type: 'standard',
             theme: 'outline',
             size: 'large',
-            width: 400,
+            width: 380,
             text: 'continue_with',
-            shape: 'rectangular',
+            shape: 'pill',
             logo_alignment: 'left'
           });
           setGoogleBtnReady(true);
@@ -399,31 +399,18 @@ export const AuthModal: React.FC = () => {
             {/* Options View */}
             {view === 'options' && (
               <div className="space-y-3">
-                {/* Google Sign-In Button - Overlay approach for proper click handling */}
-                <div className="relative w-full h-12 group cursor-pointer">
-                  {/* Custom styled button (visual layer) */}
-                  <div
-                    className={`absolute inset-0 flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-medium rounded-xl border border-gray-200 pointer-events-none transition-colors group-hover:bg-gray-50 ${oauthLoading === 'google' ? 'opacity-50' : ''}`}
-                  >
-                    {oauthLoading === 'google' ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
-                        <span>Signing in...</span>
-                      </>
-                    ) : (
-                      <>
-                        <GoogleIcon />
-                        <span>Continue with Google</span>
-                      </>
-                    )}
+                {/* Google Sign-In Button */}
+                {oauthLoading === 'google' ? (
+                  <div className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-medium rounded-xl border border-gray-200 h-12">
+                    <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+                    <span>Signing in...</span>
                   </div>
-                  {/* Google rendered button (click layer) - transparent overlay */}
+                ) : (
                   <div
                     ref={googleBtnRef}
-                    className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-xl cursor-pointer [&>div]:!w-full [&>div>div]:!w-full [&_iframe]:!w-full"
-                    style={{ opacity: 0.01 }}
+                    className="w-full flex items-center justify-center rounded-xl overflow-hidden [&>div]:!w-full [&>div>div]:!rounded-xl"
                   />
-                </div>
+                )}
 
                 {/* Apple Button */}
                 <button
