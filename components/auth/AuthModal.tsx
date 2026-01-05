@@ -204,47 +204,68 @@ export const AuthModal: React.FC = () => {
       }
 
       if (google?.accounts?.id) {
-        // Try to prompt One Tap
-        google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // One Tap not available, use OAuth2 redirect
-            const redirectUri = `${window.location.origin}/auth/google/callback`;
-            const scope = 'openid email profile';
-            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}&prompt=select_account`;
-            
-            // Open in popup
-            const width = 500;
-            const height = 600;
-            const left = window.screenX + (window.outerWidth - width) / 2;
-            const top = window.screenY + (window.outerHeight - height) / 2;
-            
-            const popup = window.open(
-              authUrl,
-              'google-auth',
-              `width=${width},height=${height},left=${left},top=${top},popup=yes`
-            );
-
-            if (!popup) {
-              setError('Popup blocked. Please allow popups and try again.');
-              setOauthLoading(null);
-              return;
-            }
-
-            // Listen for the callback
-            const checkPopup = setInterval(() => {
-              try {
-                if (popup.closed) {
-                  clearInterval(checkPopup);
-                  setOauthLoading(null);
-                }
-              } catch (e) {
-                // Cross-origin error means popup is on Google's domain
+        // Initialize if not already done
+        if (!googleInitialized) {
+          google.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (response: any) => {
+              if (!response?.credential) {
+                setError('Google Sign-In did not return credentials. Please try again.');
+                setOauthLoading(null);
+                return;
               }
-            }, 500);
+
+              try {
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                const result = await oauthLogin({
+                  email: payload.email,
+                  fullName: payload.name,
+                  provider: 'google',
+                  providerId: payload.sub
+                });
+
+                if (result.success) {
+                  setSuccess('Signed in with Google!');
+                  handleSuccess();
+                } else {
+                  setError(result.message);
+                }
+              } catch (err) {
+                setError('Failed to process Google Sign-In. Please try again.');
+              } finally {
+                setOauthLoading(null);
+              }
+            },
+            auto_select: false,
+            cancel_on_tap_outside: false,
+            ux_mode: 'popup',
+          });
+          setGoogleInitialized(true);
+        }
+
+        // Trigger the Google One Tap / popup
+        google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed()) {
+            // One Tap can't be displayed, show error with guidance
+            const reason = notification.getNotDisplayedReason();
+            console.log('Google One Tap not displayed:', reason);
+            
+            if (reason === 'opt_out_or_no_session') {
+              setError('Please sign in to your Google account in this browser first, then try again.');
+            } else if (reason === 'suppressed_by_user') {
+              setError('Google Sign-In was previously dismissed. Please use email sign-in or clear browser data.');
+            } else {
+              setError('Google Sign-In is not available. Please use email sign-in.');
+            }
+            setOauthLoading(null);
+          } else if (notification.isSkippedMoment()) {
+            // User closed or skipped
+            setOauthLoading(null);
           }
+          // If displayed, wait for callback
         });
       } else {
-        setError('Google Sign-In is loading. Please wait and try again.');
+        setError('Google Sign-In is still loading. Please wait a moment and try again.');
         setOauthLoading(null);
       }
     } catch (err) {
