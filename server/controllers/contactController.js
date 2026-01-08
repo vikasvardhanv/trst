@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import { sendContactNotificationEmail } from '../utils/email.js';
 
 // Submit contact form
 export const submitContactForm = async (req, res) => {
@@ -32,26 +33,35 @@ export const submitContactForm = async (req, res) => {
 
     const lead = result.rows[0];
 
-    // TODO: Send email notification
-    // For now, we'll log it. You can add email service later (SendGrid, AWS SES, etc.)
-    console.log('📧 New contact form submission:');
-    console.log({
-      id: lead.id,
-      name: lead.name,
-      email: lead.email,
-      company: company || 'N/A',
-      service: service || 'N/A',
-      message: message.substring(0, 100) + (message.length > 100 ? '...' : ''),
-      timestamp: lead.created_at
-    });
+    let emailSent = false;
+    let emailProvider = null;
+
+    try {
+      const emailResult = await sendContactNotificationEmail({
+        leadId: lead.id,
+        name,
+        email,
+        company,
+        service,
+        message,
+      });
+      emailSent = true;
+      emailProvider = emailResult?.provider || null;
+    } catch (emailError) {
+      console.error('Failed to send contact notification email:', emailError);
+    }
 
     // Send success response
     res.status(201).json({
       success: true,
-      message: 'Thank you for contacting us! We\'ll get back to you within 24 hours.',
+      message: emailSent
+        ? 'Thank you for contacting us! We\'ll get back to you within 24 hours.'
+        : 'Thank you! Your message was received, but we could not send a notification email. Please email us directly at info@highshiftmedia.com if this is urgent.',
       data: {
         id: lead.id,
-        submittedAt: lead.created_at
+        submittedAt: lead.created_at,
+        emailSent,
+        emailProvider,
       }
     });
 

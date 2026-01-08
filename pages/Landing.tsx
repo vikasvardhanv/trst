@@ -175,7 +175,7 @@ export const Landing: React.FC = () => {
                   Try Live Demo
                 </Button>
               </Link>
-              <Link to="/demo-form">
+              <Link to="/login?redirect=/demo-form">
                 <Button
                   size="lg"
                   variant="outline"

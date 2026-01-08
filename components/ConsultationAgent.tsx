@@ -19,6 +19,7 @@ export const ConsultationAgent: React.FC<ConsultationAgentProps> = ({ isOpen, on
   const [step, setStep] = useState<AgentStep>('options');
   const [isLoading, setIsLoading] = useState(false);
   const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+  const [error, setError] = useState('');
   const [emailData, setEmailData] = useState({
     name: '',
     email: '',
@@ -28,15 +29,43 @@ export const ConsultationAgent: React.FC<ConsultationAgentProps> = ({ isOpen, on
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate sending email
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    setStep('success');
+    setError('');
+
+    try {
+      // @ts-ignore - Vite env
+      const API_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_URL}/contact/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: emailData.name,
+          email: emailData.email,
+          company: '',
+          service: 'consultation-agent',
+          message: emailData.message,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setStep('success');
+        setEmailData({ name: '', email: '', message: '' });
+      } else {
+        setError(data.message || 'Failed to send message. Please try again.');
+      }
+    } catch {
+      setError('Network error. Please try again or email us directly at info@highshiftmedia.com');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
     setStep('options');
     setEmailData({ name: '', email: '', message: '' });
+    setError('');
     onClose();
   };
 
@@ -187,6 +216,11 @@ export const ConsultationAgent: React.FC<ConsultationAgentProps> = ({ isOpen, on
                 </button>
 
                 <form onSubmit={handleEmailSubmit} className="space-y-4">
+                  {error && (
+                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                      {error}
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-white/70 mb-2">
                       Your Name

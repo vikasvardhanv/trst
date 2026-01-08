@@ -6,6 +6,7 @@ import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { SchedulingModal } from '../components/SchedulingModal';
+import { SendEmailModal, SendEmailModalStatus } from '../components/SendEmailModal';
 import {
   Mail, Phone, MapPin, Send, MessageSquare, Calendar,
   Clock, CheckCircle, ArrowRight, BarChart3
@@ -66,14 +67,19 @@ export const Contact: React.FC = () => {
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [isSchedulingOpen, setIsSchedulingOpen] = useState(false);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [sendModalStatus, setSendModalStatus] = useState<SendEmailModalStatus>('sending');
+  const [sendModalMessage, setSendModalMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
+    setIsSendModalOpen(true);
+    setSendModalStatus('sending');
+    setSendModalMessage('Submitting your message to our team…');
 
     try {
       // @ts-ignore - Vite env
@@ -89,13 +95,18 @@ export const Contact: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        setIsSubmitted(true);
         setFormData({ name: '', email: '', company: '', service: '', message: '' });
+        setSendModalStatus('success');
+        setSendModalMessage(data.message || "Message sent. We'll get back to you within 24 hours.");
       } else {
         setError(data.message || 'Failed to send message. Please try again.');
+        setSendModalStatus('error');
+        setSendModalMessage(data.message || 'Failed to send message. Please try again.');
       }
     } catch (err) {
       setError('Network error. Please try again or email us directly at info@highshiftmedia.com');
+      setSendModalStatus('error');
+      setSendModalMessage('Network error. Please try again or email us directly at info@highshiftmedia.com');
     } finally {
       setIsSubmitting(false);
     }
@@ -114,6 +125,12 @@ export const Contact: React.FC = () => {
         isOpen={isSchedulingOpen}
         onClose={() => setIsSchedulingOpen(false)}
         source="contact-page"
+      />
+      <SendEmailModal
+        isOpen={isSendModalOpen}
+        status={sendModalStatus}
+        message={sendModalMessage}
+        onClose={() => setIsSendModalOpen(false)}
       />
       <SEO
         title="Contact Us | Get a Free Consultation | Highshift Media"
@@ -181,120 +198,103 @@ export const Contact: React.FC = () => {
             {/* Form */}
             <AnimatedSection>
               <GlassCard className="p-8">
-                {isSubmitted ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-12"
-                  >
-                    <CheckCircle className="h-16 w-16 text-emerald-400 mx-auto mb-6" />
-                    <h3 className="text-2xl font-bold text-white mb-2">Message Sent!</h3>
-                    <p className="text-white/60 mb-6">
-                      We'll get back to you within 24 hours.
-                    </p>
-                    <Button onClick={() => setIsSubmitted(false)} variant="secondary">
-                      Send Another Message
-                    </Button>
-                  </motion.div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white mb-6">Send us a message</h2>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <h2 className="text-2xl font-bold text-white mb-6">Send us a message</h2>
 
-                    {error && (
-                      <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                        {error}
-                      </div>
-                    )}
-
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">
-                          Your Name *
-                        </label>
-                        <input
-                          type="text"
-                          name="name"
-                          required
-                          value={formData.name}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-sky-500 transition-colors"
-                          placeholder="John Doe"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          required
-                          value={formData.email}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-sky-500 transition-colors"
-                          placeholder="john@company.com"
-                        />
-                      </div>
+                  {error && (
+                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                      {error}
                     </div>
+                  )}
 
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-white/70 mb-2">
-                        Company
+                        Your Name *
                       </label>
                       <input
                         type="text"
-                        name="company"
-                        value={formData.company}
+                        name="name"
+                        required
+                        value={formData.name}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-sky-500 transition-colors"
-                        placeholder="Your Company"
+                        placeholder="John Doe"
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-white/70 mb-2">
-                        What are you interested in?
+                        Email Address *
                       </label>
-                      <select
-                        name="service"
-                        value={formData.service}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-sky-500 transition-colors"
-                      >
-                        <option value="" className="bg-gray-900">Select a service</option>
-                        <option value="ai-agents" className="bg-gray-900">AI Agents</option>
-                        <option value="chatbot" className="bg-gray-900">Chatbot Development</option>
-                        <option value="marketing" className="bg-gray-900">Marketing Automation</option>
-                        <option value="custom" className="bg-gray-900">Custom AI Solution</option>
-                        <option value="other" className="bg-gray-900">Other</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-white/70 mb-2">
-                        Message *
-                      </label>
-                      <textarea
-                        name="message"
+                      <input
+                        type="email"
+                        name="email"
                         required
-                        rows={4}
-                        value={formData.message}
+                        value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-sky-500 transition-colors resize-none"
-                        placeholder="Tell us about your project..."
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-sky-500 transition-colors"
+                        placeholder="john@company.com"
                       />
                     </div>
+                  </div>
 
-                    <Button
-                      type="submit"
-                      loading={isSubmitting}
-                      icon={<Send className="h-4 w-4" />}
-                      className="w-full"
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-2">
+                      Company
+                    </label>
+                    <input
+                      type="text"
+                      name="company"
+                      value={formData.company}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-sky-500 transition-colors"
+                      placeholder="Your Company"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-2">
+                      What are you interested in?
+                    </label>
+                    <select
+                      name="service"
+                      value={formData.service}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-sky-500 transition-colors"
                     >
-                      Send Message
-                    </Button>
-                  </form>
-                )}
+                      <option value="" className="bg-gray-900">Select a service</option>
+                      <option value="ai-agents" className="bg-gray-900">AI Agents</option>
+                      <option value="chatbot" className="bg-gray-900">Chatbot Development</option>
+                      <option value="marketing" className="bg-gray-900">Marketing Automation</option>
+                      <option value="custom" className="bg-gray-900">Custom AI Solution</option>
+                      <option value="other" className="bg-gray-900">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white/70 mb-2">
+                      Message *
+                    </label>
+                    <textarea
+                      name="message"
+                      required
+                      rows={4}
+                      value={formData.message}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-sky-500 transition-colors resize-none"
+                      placeholder="Tell us about your project..."
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    loading={isSubmitting}
+                    icon={<Send className="h-4 w-4" />}
+                    className="w-full"
+                  >
+                    Send Message
+                  </Button>
+                </form>
               </GlassCard>
             </AnimatedSection>
 

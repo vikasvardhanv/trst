@@ -28,6 +28,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
   const redirectPath = useMemo(() => getSafeRedirect(location.search), [location.search]);
   const isSignup = mode === 'signup';
 
+  const authToggleHref = useMemo(() => {
+    const target = isSignup ? '/login' : '/signup';
+    const params = new URLSearchParams();
+    params.set('redirect', redirectPath);
+    return `${target}?${params.toString()}`;
+  }, [isSignup, redirectPath]);
+
   useEffect(() => {
     if (isLoading || isAuthenticated) return;
 
@@ -100,7 +107,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
             <p className="text-sm text-white/50 mt-6">
               {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
               <Link
-                to={isSignup ? '/login' : '/signup'}
+                to={authToggleHref}
                 className="text-sky-400 hover:text-sky-300"
               >
                 {isSignup ? 'Sign in' : 'Create one'}
