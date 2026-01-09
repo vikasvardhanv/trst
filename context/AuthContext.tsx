@@ -59,7 +59,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (token && savedUser) {
         try {
-          // Verify token is still valid
+          // First, immediately set the user from localStorage for instant auth state
+          const cachedUser = JSON.parse(savedUser);
+          setUser(cachedUser);
+          console.log('[Auth] Set cached user:', cachedUser?.email);
+
+          // Then verify token is still valid in background
           const response = await fetch(`${API_URL}/auth/verify`, {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -77,15 +82,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log('[Auth] Token invalid, clearing');
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
+            setUser(null);
           }
         } catch (error) {
-          // Network error, use cached user
-          console.log('[Auth] Network error, using cached user');
-          setUser(JSON.parse(savedUser));
+          // Network error - keep using cached user (already set above)
+          console.log('[Auth] Network error during verify, keeping cached user:', error);
         }
       }
       setIsLoading(false);
-      console.log('[Auth] Loading complete, isAuthenticated:', !!(token && savedUser));
+      console.log('[Auth] Loading complete');
     };
 
     loadUser();
