@@ -114,15 +114,15 @@ export const Store: React.FC = () => {
                 Browse workflows by category, open a workflow to see details, and download the JSON to import into n8n.
               </p>
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <div className="mt-8 flex flex-row gap-3 overflow-x-auto">
                 <Link to="/demos/workflow-automation">
-                  <Button variant="primary" size="lg">
+                  <Button variant="primary" size="lg" className="whitespace-nowrap">
                     See automation demo
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Link to="/contact">
-                  <Button variant="secondary" size="lg">
+                  <Button variant="secondary" size="lg" className="whitespace-nowrap">
                     Contact us
                   </Button>
                 </Link>
@@ -149,6 +149,7 @@ export const Store: React.FC = () => {
                   <div>
                     <div className="text-sm text-white/50">Workflow</div>
                     <h2 className="mt-1 text-2xl font-bold text-white">{selectedWorkflow.name}</h2>
+                    <div className="mt-2 text-sm text-white/60">$39</div>
                     {selectedWorkflow.description ? (
                       <p className="mt-3 text-white/70 leading-relaxed">{selectedWorkflow.description}</p>
                     ) : (
@@ -186,13 +187,13 @@ export const Store: React.FC = () => {
                     <a href={downloadUrl} download>
                       <Button variant="primary" size="md">
                         <Download className="h-4 w-4" />
-                        Download JSON
+                        Download
                       </Button>
                     </a>
                   ) : (
                     <Button variant="primary" size="md" disabled>
                       <Download className="h-4 w-4" />
-                      Download unavailable
+                      Download
                     </Button>
                   )}
 
@@ -247,7 +248,10 @@ export const Store: React.FC = () => {
                                   </div>
                                 )}
                               </div>
-                              <ChevronRight className="h-5 w-5 text-white/40 shrink-0" />
+                              <div className="shrink-0 flex items-center gap-3">
+                                <div className="text-sm font-semibold text-white">$39</div>
+                                <ChevronRight className="h-5 w-5 text-white/40" />
+                              </div>
                             </div>
                           </GlassCard>
                         </Link>
@@ -255,6 +259,25 @@ export const Store: React.FC = () => {
                     ))}
                   </div>
                 </StaggerContainer>
+
+                <div className="mt-10">
+                  <GlassCard className="p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="text-sm text-white/50">Custom</div>
+                        <div className="mt-1 text-xl font-semibold text-white">Need a custom workflow?</div>
+                        <div className="mt-2 text-sm text-white/60">
+                          Tell us what you want to automate and we’ll build it in n8n.
+                        </div>
+                      </div>
+                      <Link to={`/contact?subject=${encodeURIComponent('Custom n8n workflow request')}`}>
+                        <Button variant="primary" size="md" className="whitespace-nowrap">
+                          Contact for custom workflow
+                        </Button>
+                      </Link>
+                    </div>
+                  </GlassCard>
+                </div>
               </>
             ) : (
               <StaggerContainer>
@@ -272,6 +295,25 @@ export const Store: React.FC = () => {
                       </Link>
                     </StaggerItem>
                   ))}
+                </div>
+
+                <div className="mt-10">
+                  <GlassCard className="p-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="text-sm text-white/50">Custom</div>
+                        <div className="mt-1 text-xl font-semibold text-white">Need a custom workflow?</div>
+                        <div className="mt-2 text-sm text-white/60">
+                          Tell us what you want to automate and we’ll build it in n8n.
+                        </div>
+                      </div>
+                      <Link to={`/contact?subject=${encodeURIComponent('Custom n8n workflow request')}`}>
+                        <Button variant="primary" size="md" className="whitespace-nowrap">
+                          Contact for custom workflow
+                        </Button>
+                      </Link>
+                    </div>
+                  </GlassCard>
                 </div>
               </StaggerContainer>
             )}
