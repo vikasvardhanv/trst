@@ -12,6 +12,7 @@ const navItems = [
   { name: 'Case Studies', path: '/case-studies' },
   { name: 'Marketing', path: '/marketing' },
   { name: 'Demos', path: '/demos' },
+  { name: 'Store', path: '/store' },
 ];
 
 export const Navbar: React.FC = () => {

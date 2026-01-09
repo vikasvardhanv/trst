@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Layout } from '../components/layout/Layout';
 import { SEO } from '../components/ui/SEO';
@@ -11,7 +11,7 @@ import {
   Mail, Phone, MapPin, Send, MessageSquare, Calendar,
   Clock, CheckCircle, ArrowRight, BarChart3
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 // Contact methods
 const contactMethods = [
@@ -59,6 +59,7 @@ const faqs = [
 ];
 
 export const Contact: React.FC = () => {
+  const location = useLocation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -72,6 +73,16 @@ export const Contact: React.FC = () => {
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [sendModalStatus, setSendModalStatus] = useState<SendEmailModalStatus>('sending');
   const [sendModalMessage, setSendModalMessage] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const subject = params.get('subject');
+    if (!subject) return;
+    setFormData((prev) => {
+      if (prev.message.trim()) return prev;
+      return { ...prev, message: subject };
+    });
+  }, [location.search]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

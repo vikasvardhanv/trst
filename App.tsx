@@ -18,6 +18,7 @@ const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Con
 const CaseStudies = lazy(() => import('./pages/CaseStudies').then(m => ({ default: m.CaseStudies })));
 const Careers = lazy(() => import('./pages/Careers').then(m => ({ default: m.Careers })));
 const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.AuthPage })));
+const Store = lazy(() => import('./pages/Store').then(m => ({ default: m.Store })));
 
 // Legal pages - lazy loaded
 const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
@@ -126,6 +127,9 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/marketing" element={<PageTransition><Marketing /></PageTransition>} />
         <Route path="/case-studies" element={<PageTransition><CaseStudies /></PageTransition>} />
         <Route path="/demos" element={<PageTransition><Demos /></PageTransition>} />
+        <Route path="/store" element={<PageTransition><Store /></PageTransition>} />
+        <Route path="/store/:categorySlug" element={<PageTransition><Store /></PageTransition>} />
+        <Route path="/store/:categorySlug/:workflowFile" element={<PageTransition><Store /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/careers" element={<PageTransition><Careers /></PageTransition>} />
         <Route path="/demo-form" element={<PageTransition><DemoForm /></PageTransition>} />
