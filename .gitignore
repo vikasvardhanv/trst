@@ -30,3 +30,5 @@ todo.md
 .env.production
 DEPLOYMENT.md
 highshift-media.json
+/n8n    
+/build
