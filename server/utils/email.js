@@ -99,24 +99,31 @@ export const sendContactNotificationEmail = async ({
 
     const createdAt = new Date().toISOString();
 
-    // Ensure the sheet contains a Recipients tab for generic Modal sends
-    await ensureRecipientsSheetAndValues({
-      spreadsheetId,
-      recipients,
-    });
+    try {
+      // Ensure the sheet contains a Recipients tab for generic Modal sends
+      await ensureRecipientsSheetAndValues({
+        spreadsheetId,
+        recipients,
+      });
 
-    await appendSubmissionToSheet({
-      spreadsheetId,
-      values: [
-        createdAt,
-        leadId ?? '',
-        name,
-        email,
-        company || '',
-        service || '',
-        message,
-      ],
-    });
+      await appendSubmissionToSheet({
+        spreadsheetId,
+        values: [
+          createdAt,
+          leadId ?? '',
+          name,
+          email,
+          company || '',
+          service || '',
+          message,
+        ],
+      });
+    } catch (googleError) {
+      const msg = googleError?.message || String(googleError);
+      throw new Error(
+        `Google write failed (Sheet/Recipients/Submissions). Ensure GOOGLE_SERVICE_ACCOUNT_JSON is set and that the service account has Editor access to the Sheet and the template Doc. Details: ${msg}`
+      );
+    }
 
     // 2) Copy the template doc and inject details
     const templateDocId = extractGoogleDocIdFromUrl(baseTemplateUrl);
@@ -138,11 +145,20 @@ export const sendContactNotificationEmail = async ({
       message,
     ].join('\n');
 
-    const { docUrl } = await copyDocTemplateAndInjectDetails({
-      templateDocId,
-      title: docTitle,
-      detailsText,
-    });
+    let docUrl;
+    try {
+      const result = await copyDocTemplateAndInjectDetails({
+        templateDocId,
+        title: docTitle,
+        detailsText,
+      });
+      docUrl = result.docUrl;
+    } catch (docError) {
+      const msg = docError?.message || String(docError);
+      throw new Error(
+        `Google Doc copy/fill failed. Ensure the service account has access to the template doc and Drive API is enabled. Details: ${msg}`
+      );
+    }
 
     // 3) Call Modal email API (exact body shape)
     return await sendViaModalEmailApi({

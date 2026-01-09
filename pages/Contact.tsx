@@ -97,7 +97,12 @@ export const Contact: React.FC = () => {
       if (data.success) {
         setFormData({ name: '', email: '', company: '', service: '', message: '' });
         setSendModalStatus('success');
-        setSendModalMessage(data.message || "Message sent. We'll get back to you within 24 hours.");
+        if (data.data?.emailSent === false && data.data?.emailError) {
+          setSendModalStatus('error');
+          setSendModalMessage(data.data.emailError);
+        } else {
+          setSendModalMessage(data.message || "Message sent. We'll get back to you within 24 hours.");
+        }
       } else {
         setError(data.message || 'Failed to send message. Please try again.');
         setSendModalStatus('error');

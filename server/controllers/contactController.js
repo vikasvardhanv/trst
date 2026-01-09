@@ -35,6 +35,7 @@ export const submitContactForm = async (req, res) => {
 
     let emailSent = false;
     let emailProvider = null;
+    let emailErrorMessage = null;
 
     try {
       const emailResult = await sendContactNotificationEmail({
@@ -48,6 +49,7 @@ export const submitContactForm = async (req, res) => {
       emailSent = true;
       emailProvider = emailResult?.provider || null;
     } catch (emailError) {
+      emailErrorMessage = emailError?.message || String(emailError);
       console.error('Failed to send contact notification email:', emailError);
     }
 
@@ -56,12 +58,15 @@ export const submitContactForm = async (req, res) => {
       success: true,
       message: emailSent
         ? 'Thank you for contacting us! We\'ll get back to you within 24 hours.'
-        : 'Thank you! Your message was received, but we could not send a notification email. Please email us directly at info@highshiftmedia.com if this is urgent.',
+        : 'Thank you! Your message was received, but notifications are not fully configured yet. Please email us directly at info@highshiftmedia.com if this is urgent.',
       data: {
         id: lead.id,
         submittedAt: lead.created_at,
         emailSent,
         emailProvider,
+        ...(process.env.NODE_ENV !== 'production' && emailErrorMessage
+          ? { emailError: emailErrorMessage }
+          : {}),
       }
     });
 
