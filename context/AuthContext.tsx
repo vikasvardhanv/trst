@@ -55,6 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = localStorage.getItem(TOKEN_KEY);
       const savedUser = localStorage.getItem(USER_KEY);
 
+      console.log('[Auth] Loading user, token exists:', !!token, 'savedUser exists:', !!savedUser);
+
       if (token && savedUser) {
         try {
           // Verify token is still valid
@@ -64,20 +66,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           });
 
+          console.log('[Auth] Verify response:', response.status);
+
           if (response.ok) {
             const data = await response.json();
             setUser(data.data.user);
+            console.log('[Auth] User verified:', data.data.user?.email);
           } else {
             // Token invalid, clear storage
+            console.log('[Auth] Token invalid, clearing');
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
           }
         } catch (error) {
           // Network error, use cached user
+          console.log('[Auth] Network error, using cached user');
           setUser(JSON.parse(savedUser));
         }
       }
       setIsLoading(false);
+      console.log('[Auth] Loading complete, isAuthenticated:', !!(token && savedUser));
     };
 
     loadUser();
