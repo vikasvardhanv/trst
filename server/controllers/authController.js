@@ -45,7 +45,11 @@ const buildRedirectUrl = (req, state) => {
 };
 
 const sendOAuthRedirectPage = (res, token, user, redirectUrl) => {
-  const payload = JSON.stringify({ token, user, redirectUrl });
+  // Escape for safe embedding in script tag
+  const safeToken = token.replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+  const safeUser = JSON.stringify(user).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+  const safeRedirectUrl = redirectUrl.replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+  
   res
     .status(200)
     .type('html')
@@ -58,21 +62,36 @@ const sendOAuthRedirectPage = (res, token, user, redirectUrl) => {
     <style>
       body { font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
       .card { text-align: center; max-width: 420px; padding: 24px; }
+      .error { color: #f87171; margin-top: 16px; }
     </style>
   </head>
   <body>
     <div class="card">
       <h1>Signing you in...</h1>
       <p>You will be redirected automatically.</p>
+      <p id="error" class="error" style="display:none;"></p>
     </div>
     <script>
       (function () {
-        var data = ${payload};
         try {
-          localStorage.setItem(${JSON.stringify(TOKEN_KEY)}, data.token);
-          localStorage.setItem(${JSON.stringify(USER_KEY)}, JSON.stringify(data.user));
-        } catch (error) {}
-        window.location.replace(data.redirectUrl);
+          var token = "${safeToken}";
+          var user = ${safeUser};
+          var redirectUrl = "${safeRedirectUrl}";
+          
+          console.log('[OAuth] Storing auth data, redirect to:', redirectUrl);
+          localStorage.setItem("${TOKEN_KEY}", token);
+          localStorage.setItem("${USER_KEY}", JSON.stringify(user));
+          console.log('[OAuth] Auth data stored, redirecting...');
+          
+          // Small delay to ensure storage is complete
+          setTimeout(function() {
+            window.location.replace(redirectUrl);
+          }, 100);
+        } catch (error) {
+          console.error('[OAuth] Error:', error);
+          document.getElementById('error').textContent = 'Error: ' + error.message;
+          document.getElementById('error').style.display = 'block';
+        }
       })();
     </script>
   </body>

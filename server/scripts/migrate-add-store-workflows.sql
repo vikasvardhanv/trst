@@ -18,9 +18,11 @@ CREATE TABLE IF NOT EXISTS store_workflows (
     workflow_json JSONB,  -- actual n8n workflow content (optional)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT store_workflows_unique_category_workflow UNIQUE (category_slug, workflow_slug),
     CONSTRAINT store_workflows_unique_file_name UNIQUE (file_name)
 );
+
+-- Drop legacy constraint if exists (same workflow can appear in multiple categories)
+ALTER TABLE store_workflows DROP CONSTRAINT IF EXISTS store_workflows_unique_category_workflow;
 
 -- Download tokens for secure one-time or time-limited downloads
 CREATE TABLE IF NOT EXISTS store_download_tokens (

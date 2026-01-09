@@ -199,7 +199,8 @@ const main = async () => {
           [
             w.categorySlug,
             w.categoryTitle,
-            w.workflowSlug,
+            // Make workflow_slug unique by using file_name slug directly
+            normalizeSlug(w.fileName.replace(/\.json$/i, '')),
             w.name,
             w.fileName,
             w.description || null,
