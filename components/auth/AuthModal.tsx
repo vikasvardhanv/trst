@@ -6,7 +6,7 @@ import { GlassCard } from '../ui/GlassCard';
 import { Button } from '../ui/Button';
 import {
   X, Mail, Lock, User, Building2, Phone, ArrowRight, Eye, EyeOff,
-  AlertCircle, CheckCircle2, Loader2, ArrowLeft
+  AlertCircle, CheckCircle2, Loader2, ArrowLeft, Home
 } from 'lucide-react';
 
 // Google Icon
@@ -347,6 +347,18 @@ export const AuthModal: React.FC = () => {
                     Privacy Policy
                   </Link>
                 </p>
+
+                {/* Go to Home link */}
+                <div className="text-center mt-4 pt-4 border-t border-white/10">
+                  <Link
+                    to="/"
+                    onClick={() => setShowAuthModal(false)}
+                    className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors"
+                  >
+                    <Home className="h-4 w-4" />
+                    Go to Home
+                  </Link>
+                </div>
               </div>
             )}
 

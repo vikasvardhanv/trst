@@ -6,7 +6,7 @@ import { BrandLogo } from '../constants';
 import {
   ArrowRight, CheckCircle, Zap, Target, Gift,
   MessageSquare, Mic, Video, Building2, TrendingUp, Settings,
-  Loader2, AlertCircle, Rocket, Phone, Mail, LinkIcon
+  Loader2, AlertCircle, Rocket, Phone, Mail, LinkIcon, Home, ArrowLeft
 } from 'lucide-react';
 
 // API endpoint for demo creation
@@ -193,13 +193,22 @@ export const DemoForm: React.FC = () => {
             {/* Top gradient line */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent" />
 
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 mb-8">
-              <BrandLogo className="h-12 w-12" />
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                HighShift Media
-              </span>
-            </Link>
+            {/* Logo and Navigation */}
+            <div className="flex items-center justify-between mb-8">
+              <Link to="/" className="flex items-center gap-3">
+                <BrandLogo className="h-12 w-12" />
+                <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  HighShift Media
+                </span>
+              </Link>
+              <Link 
+                to="/" 
+                className="flex items-center gap-2 px-4 py-2 text-sm text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Link>
+            </div>
 
             {!isSuccess ? (
               <>
