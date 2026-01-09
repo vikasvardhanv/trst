@@ -72,10 +72,11 @@ const PageTransition: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
+      initial={false}
       animate={{ opacity: 1, y: 0 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -20 }}
       transition={{ duration: prefersReducedMotion ? 0.1 : 0.3, ease: [0.25, 0.4, 0.25, 1] }}
+      style={{ opacity: 1 }}
     >
       {children}
     </motion.div>

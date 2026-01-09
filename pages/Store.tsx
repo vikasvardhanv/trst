@@ -7,7 +7,10 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { GradientText } from '../components/ui/FloatingElements';
 import { useAuth, getAuthToken } from '../context/AuthContext';
-import { ShoppingCart, Tags, ArrowRight, Download, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
+import { ShoppingCart, Tags, ArrowRight, Download, ChevronRight, AlertTriangle, Loader2, CreditCard } from 'lucide-react';
+
+// Placeholder Stripe link - replace with actual Stripe payment link
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/PLACEHOLDER';
 
 type StoreCategory = {
   slug: string;
@@ -224,7 +227,10 @@ export const Store: React.FC = () => {
                   <div>
                     <div className="text-sm text-white/50">Workflow</div>
                     <h2 className="mt-1 text-2xl font-bold text-white">{selectedWorkflow.name}</h2>
-                    <div className="mt-2 text-sm text-white/60">$39</div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="text-3xl font-bold text-sky-400">$39</span>
+                      <span className="text-sm text-white/50">one-time purchase</span>
+                    </div>
                     {selectedWorkflow.description ? (
                       <p className="mt-3 text-white/70 leading-relaxed">{selectedWorkflow.description}</p>
                     ) : (
@@ -259,23 +265,37 @@ export const Store: React.FC = () => {
 
                 <div className="mt-8 flex flex-col sm:flex-row gap-3">
                   {selectedWorkflow.hasJson ? (
-                    <Button
-                      variant="primary"
-                      size="md"
-                      onClick={handleDownload}
-                      disabled={downloading}
-                    >
-                      {downloading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Download className="h-4 w-4" />
+                    <>
+                      <a
+                        href={`${STRIPE_PAYMENT_LINK}?client_reference_id=${selectedWorkflow.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="primary" size="lg">
+                          <CreditCard className="h-4 w-4" />
+                          Buy Now — $39
+                        </Button>
+                      </a>
+                      {isAuthenticated && (
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          onClick={handleDownload}
+                          disabled={downloading}
+                        >
+                          {downloading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                          Download (if purchased)
+                        </Button>
                       )}
-                      {isAuthenticated ? 'Download' : 'Sign in to download'}
-                    </Button>
+                    </>
                   ) : (
-                    <Button variant="primary" size="md" disabled>
-                      <Download className="h-4 w-4" />
-                      Coming soon
+                    <Button variant="primary" size="lg" disabled>
+                      <CreditCard className="h-4 w-4" />
+                      Coming soon — $39
                     </Button>
                   )}
 
@@ -329,9 +349,12 @@ export const Store: React.FC = () => {
                                   </div>
                                 )}
                               </div>
-                              <div className="shrink-0 flex items-center gap-3">
-                                <div className="text-sm font-semibold text-white">$39</div>
-                                <ChevronRight className="h-5 w-5 text-white/40" />
+                              <div className="shrink-0 flex flex-col items-end gap-1">
+                                <div className="text-lg font-bold text-sky-400">$39</div>
+                                <div className="flex items-center gap-1 text-xs text-white/50">
+                                  <CreditCard className="h-3 w-3" />
+                                  Buy now
+                                </div>
                               </div>
                             </div>
                           </GlassCard>
