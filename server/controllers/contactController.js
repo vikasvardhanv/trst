@@ -23,15 +23,31 @@ export const submitContactForm = async (req, res) => {
       });
     }
 
-    // Save to database (leads table)
-    const result = await query(
-      `INSERT INTO leads (name, email, company, service_interest, message, source, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id, name, email, created_at`,
-      [name, email, company || null, service || 'general', message, 'contact_form', 'new']
-    );
-
-    const lead = result.rows[0];
+    // Save to database (leads table) - optional fallback for environments without DB
+    let lead = null;
+    let dbSaved = false;
+    let dbErrorMessage = null;
+    try {
+      const result = await query(
+        `INSERT INTO leads (name, email, company, service_interest, message, source, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, name, email, created_at`,
+        [name, email, company || null, service || 'general', message, 'contact_form', 'new']
+      );
+      lead = result.rows[0];
+      dbSaved = true;
+    } catch (dbError) {
+      const allowNoDb = String(process.env.CONTACT_ALLOW_NO_DB || '').toLowerCase() === 'true';
+      dbErrorMessage = dbError?.message || String(dbError);
+      console.error('Failed to save lead to database:', dbError);
+      if (!allowNoDb) {
+        throw dbError;
+      }
+      lead = {
+        id: null,
+        created_at: new Date().toISOString(),
+      };
+    }
 
     let emailSent = false;
     let emailProvider = null;
@@ -39,7 +55,7 @@ export const submitContactForm = async (req, res) => {
 
     try {
       const emailResult = await sendContactNotificationEmail({
-        leadId: lead.id,
+        leadId: lead?.id ?? null,
         name,
         email,
         company,
@@ -60,10 +76,14 @@ export const submitContactForm = async (req, res) => {
         ? 'Thank you for contacting us! We\'ll get back to you within 24 hours.'
         : 'Thank you! Your message was received, but notifications are not fully configured yet. Please email us directly at info@highshiftmedia.com if this is urgent.',
       data: {
-        id: lead.id,
-        submittedAt: lead.created_at,
+        id: lead?.id ?? null,
+        submittedAt: lead?.created_at ?? new Date().toISOString(),
+        dbSaved,
         emailSent,
         emailProvider,
+        ...(process.env.NODE_ENV !== 'production' && dbErrorMessage
+          ? { dbError: dbErrorMessage }
+          : {}),
         ...(process.env.NODE_ENV !== 'production' && emailErrorMessage
           ? { emailError: emailErrorMessage }
           : {}),
