@@ -117,8 +117,15 @@ export const AuthModal: React.FC = () => {
     setOauthLoading('google');
     setError('');
     
-    // Get current path to return to after auth
-    const returnTo = encodeURIComponent(window.location.pathname);
+    // Get current path to return to after auth.
+    // If we're on /login or /signup, prefer the `redirect` query param so we land back on the intended page.
+    const params = new URLSearchParams(window.location.search);
+    const redirectParam = params.get('redirect');
+    const isAuthRoute = window.location.pathname === '/login' || window.location.pathname === '/signup';
+    const rawReturnTo = isAuthRoute
+      ? (redirectParam || '/')
+      : `${window.location.pathname}${window.location.search}`;
+    const returnTo = encodeURIComponent(rawReturnTo);
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
     
     // Redirect to server endpoint which will redirect to Google
