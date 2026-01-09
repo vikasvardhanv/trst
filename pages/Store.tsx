@@ -6,84 +6,159 @@ import { AnimatedSection, StaggerContainer, StaggerItem } from '../components/ui
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { GradientText } from '../components/ui/FloatingElements';
-import { parseN8nWorkflowReadme, type N8nStoreCategory, type N8nStoreWorkflow } from '../utils/n8nReadmeStore';
-import { ShoppingCart, Tags, ArrowRight, Download, ChevronRight, AlertTriangle } from 'lucide-react';
+import { useAuth, getAuthToken } from '../context/AuthContext';
+import { ShoppingCart, Tags, ArrowRight, Download, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
 
-const getDownloadBaseUrl = () => {
+type StoreCategory = {
+  slug: string;
+  title: string;
+  count: number;
+};
+
+type StoreWorkflow = {
+  id?: string;
+  categorySlug: string;
+  categoryTitle: string;
+  workflowSlug: string;
+  name: string;
+  fileName: string;
+  description: string;
+  integrations: string[];
+  priceCents: number;
+  currency: string;
+  hasJson?: boolean;
+};
+
+type StoreCategoryDetail = {
+  slug: string;
+  title: string;
+  count: number;
+  workflows: StoreWorkflow[];
+};
+
+const getApiBaseUrl = () => {
   // @ts-ignore - Vite env
-  const base = (import.meta.env.VITE_WORKFLOW_DOWNLOAD_BASE_URL as string | undefined) || '/workflows/';
-  return base.endsWith('/') ? base : `${base}/`;
+  return (import.meta.env.VITE_API_URL as string | undefined) || '/api';
 };
 
 const encodeFile = (fileName: string) => encodeURIComponent(fileName);
 const decodeFile = (encoded: string) => decodeURIComponent(encoded);
 
-const findWorkflow = (categories: N8nStoreCategory[], categorySlug: string, fileName: string) => {
-  const category = categories.find((c) => c.slug === categorySlug);
-  const workflow = category?.workflows.find((w) => w.fileName === fileName);
-  return { category, workflow };
-};
-
 export const Store: React.FC = () => {
   const { categorySlug, workflowFile } = useParams();
-  const [readme, setReadme] = useState<string>('');
-  const [readmeError, setReadmeError] = useState<string>('');
-  const [downloadAvailable, setDownloadAvailable] = useState<boolean | null>(null);
+  const { isAuthenticated, setShowAuthModal, setAuthModalMode } = useAuth();
+  const [categories, setCategories] = useState<StoreCategory[]>([]);
+  const [categoryDetail, setCategoryDetail] = useState<StoreCategoryDetail | null>(null);
+  const [workflowDetail, setWorkflowDetail] = useState<{ category: { slug: string; title: string }; workflow: StoreWorkflow } | null>(null);
+  const [storeError, setStoreError] = useState<string>('');
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string>('');
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      setReadmeError('');
+      setStoreError('');
+      setCategoryDetail(null);
+      setWorkflowDetail(null);
+
+      const apiBase = getApiBaseUrl();
+
       try {
-        const res = await fetch('/README.md', { cache: 'no-cache' });
-        if (!res.ok) throw new Error(`Failed to load README.md (${res.status})`);
-        const text = await res.text();
-        if (!cancelled) setReadme(text);
+        if (!categorySlug) {
+          const res = await fetch(`${apiBase}/store/categories`, { cache: 'no-cache' });
+          const json = await res.json().catch(() => null);
+          if (!res.ok || !json?.success) {
+            throw new Error(json?.message || `Failed to load store categories (${res.status})`);
+          }
+          if (!cancelled) setCategories(Array.isArray(json.data) ? json.data : []);
+          return;
+        }
+
+        if (categorySlug && !workflowFile) {
+          const res = await fetch(`${apiBase}/store/categories/${encodeURIComponent(categorySlug)}`, { cache: 'no-cache' });
+          const json = await res.json().catch(() => null);
+          if (!res.ok || !json?.success) {
+            throw new Error(json?.message || `Failed to load category (${res.status})`);
+          }
+          if (!cancelled) setCategoryDetail(json.data);
+          return;
+        }
+
+        if (categorySlug && workflowFile) {
+          const res = await fetch(
+            `${apiBase}/store/workflows/${encodeURIComponent(categorySlug)}/${encodeURIComponent(decodeFile(workflowFile))}`,
+            { cache: 'no-cache' }
+          );
+          const json = await res.json().catch(() => null);
+          if (!res.ok || !json?.success) {
+            throw new Error(json?.message || `Failed to load workflow (${res.status})`);
+          }
+          if (!cancelled) setWorkflowDetail(json.data);
+          return;
+        }
       } catch (e: any) {
-        if (!cancelled) setReadmeError(e?.message || 'Failed to load workflow catalog');
+        if (!cancelled) setStoreError(e?.message || 'Failed to load store catalog');
       }
     };
+
     load();
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  const categories = useMemo(() => (readme ? parseN8nWorkflowReadme(readme) : []), [readme]);
+  }, [categorySlug, workflowFile]);
 
   const selectedCategory = useMemo(() => {
     if (!categorySlug) return null;
-    return categories.find((c) => c.slug === categorySlug) || null;
-  }, [categories, categorySlug]);
+    if (workflowFile && workflowDetail?.category) return workflowDetail.category;
+    if (categoryDetail) return { slug: categoryDetail.slug, title: categoryDetail.title };
+    return null;
+  }, [categorySlug, workflowFile, workflowDetail, categoryDetail]);
 
-  const selectedWorkflow: N8nStoreWorkflow | null = useMemo(() => {
+  const selectedWorkflow: StoreWorkflow | null = useMemo(() => {
     if (!categorySlug || !workflowFile) return null;
-    const fileName = decodeFile(workflowFile);
-    return findWorkflow(categories, categorySlug, fileName).workflow || null;
-  }, [categories, categorySlug, workflowFile]);
+    return workflowDetail?.workflow || null;
+  }, [categorySlug, workflowFile, workflowDetail]);
 
-  const downloadUrl = useMemo(() => {
-    if (!selectedWorkflow) return null;
-    return `${getDownloadBaseUrl()}${encodeFile(selectedWorkflow.fileName)}`;
-  }, [selectedWorkflow]);
+  // Secure download handler: requires auth, fetches one-time token, triggers download
+  const handleDownload = async () => {
+    if (!selectedWorkflow?.id) return;
 
-  useEffect(() => {
-    let cancelled = false;
-    const check = async () => {
-      setDownloadAvailable(null);
-      if (!downloadUrl) return;
-      try {
-        const res = await fetch(downloadUrl, { method: 'HEAD' });
-        if (!cancelled) setDownloadAvailable(res.ok);
-      } catch {
-        if (!cancelled) setDownloadAvailable(false);
+    if (!isAuthenticated) {
+      setAuthModalMode('login');
+      setShowAuthModal(true);
+      return;
+    }
+
+    setDownloading(true);
+    setDownloadError('');
+
+    const apiBase = getApiBaseUrl();
+
+    try {
+      // Step 1: Request a one-time download token
+      const authToken = getAuthToken();
+      const tokenRes = await fetch(`${apiBase}/store/download-token/${selectedWorkflow.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const tokenJson = await tokenRes.json().catch(() => null);
+      if (!tokenRes.ok || !tokenJson?.success) {
+        throw new Error(tokenJson?.message || 'Failed to get download token');
       }
-    };
-    check();
-    return () => {
-      cancelled = true;
-    };
-  }, [downloadUrl]);
+
+      // Step 2: Trigger the download via the token endpoint
+      const downloadToken = tokenJson.data.token;
+      window.location.href = `${apiBase}/store/download/${downloadToken}`;
+    } catch (e: any) {
+      setDownloadError(e?.message || 'Download failed');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <Layout>
@@ -133,13 +208,13 @@ export const Store: React.FC = () => {
 
         <AnimatedSection className="py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {readmeError ? (
+            {storeError ? (
               <GlassCard className="p-6">
                 <div className="flex items-start gap-3 text-white/80">
                   <AlertTriangle className="h-5 w-5 text-amber-400" />
                   <div>
                     <div className="font-semibold">Could not load workflow catalog</div>
-                    <div className="mt-1 text-sm text-white/60">{readmeError}</div>
+                    <div className="mt-1 text-sm text-white/60">{storeError}</div>
                   </div>
                 </div>
               </GlassCard>
@@ -183,17 +258,24 @@ export const Store: React.FC = () => {
                 </div>
 
                 <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                  {downloadUrl && downloadAvailable !== false ? (
-                    <a href={downloadUrl} download>
-                      <Button variant="primary" size="md">
+                  {selectedWorkflow.hasJson ? (
+                    <Button
+                      variant="primary"
+                      size="md"
+                      onClick={handleDownload}
+                      disabled={downloading}
+                    >
+                      {downloading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
                         <Download className="h-4 w-4" />
-                        Download
-                      </Button>
-                    </a>
+                      )}
+                      {isAuthenticated ? 'Download' : 'Sign in to download'}
+                    </Button>
                   ) : (
                     <Button variant="primary" size="md" disabled>
                       <Download className="h-4 w-4" />
-                      Download
+                      Coming soon
                     </Button>
                   )}
 
@@ -204,20 +286,19 @@ export const Store: React.FC = () => {
                   </Link>
                 </div>
 
-                {downloadUrl && downloadAvailable === false && (
-                  <div className="mt-3 text-sm text-white/50">
-                    This workflow file isn’t hosted yet. Add the JSON under public/workflows (or set VITE_WORKFLOW_DOWNLOAD_BASE_URL to your hosted location).
-                  </div>
+                {downloadError && (
+                  <div className="mt-3 text-sm text-red-400">{downloadError}</div>
                 )}
+
               </GlassCard>
-            ) : selectedCategory ? (
+            ) : categoryDetail ? (
               <>
                 <div className="flex items-center justify-between gap-4 mb-6">
                   <div>
                     <div className="text-sm text-white/50">Category</div>
-                    <h2 className="mt-1 text-2xl font-bold text-white">{selectedCategory.title}</h2>
+                    <h2 className="mt-1 text-2xl font-bold text-white">{categoryDetail.title}</h2>
                     <div className="mt-1 text-sm text-white/50">
-                      {selectedCategory.workflows.length} workflows listed
+                      {categoryDetail.workflows.length} workflows listed
                     </div>
                   </div>
                   <Link to="/store">
@@ -227,9 +308,9 @@ export const Store: React.FC = () => {
 
                 <StaggerContainer>
                   <div className="grid grid-cols-1 gap-4">
-                    {selectedCategory.workflows.map((w) => (
+                    {categoryDetail.workflows.map((w) => (
                       <StaggerItem key={`${w.categorySlug}:${w.fileName}`}>
-                        <Link to={`/store/${selectedCategory.slug}/${encodeFile(w.fileName)}`}>
+                        <Link to={`/store/${categoryDetail.slug}/${encodeFile(w.fileName)}`}>
                           <GlassCard className="p-5 hover:bg-white/10 transition-colors">
                             <div className="flex items-start justify-between gap-4">
                               <div>
@@ -289,7 +370,7 @@ export const Store: React.FC = () => {
                           <div className="text-sm text-white/50">Category</div>
                           <div className="mt-2 text-xl font-semibold text-white">{cat.title}</div>
                           <div className="mt-2 text-sm text-white/60">
-                            {(cat.count ?? cat.workflows.length).toLocaleString()} workflows
+                            {(cat.count ?? 0).toLocaleString()} workflows
                           </div>
                         </GlassCard>
                       </Link>

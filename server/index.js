@@ -8,6 +8,7 @@ import 'dotenv/config';
 import authRoutes from './routes/auth.js';
 import contactRoutes from './routes/contact.js';
 import leadsRoutes from './routes/leads.js';
+import storeRoutes from './routes/store.js';
 import logger from './utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -66,6 +67,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/leads', leadsRoutes);
+app.use('/api/store', storeRoutes);
 
 // 404 handler for API routes
 app.use('/api/*', (req, res) => {
