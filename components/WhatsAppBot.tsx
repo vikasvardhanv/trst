@@ -178,7 +178,7 @@ export const WhatsAppBot: React.FC<WhatsAppBotProps> = ({ onRestart }) => {
       }
     } else if (currentFlow === 'order') {
       setCurrentFlow(null);
-      botResponse = `🎉 **Great Choice!**\n\nYou've selected: **${userMessage}**\n\nTo complete your order, please:\n1. Click here to checkout: [Payment Link]\n2. Or call us: +1 (555) 123-4567\n\n💳 We accept all major credit cards and PayPal.\n🔒 100% secure checkout\n\nWould you like me to help with anything else?`;
+      botResponse = `🎉 **Great Choice!**\n\nYou've selected: **${userMessage}**\n\nTo complete your order, please:\n1. Checkout here: https://buy.stripe.com/7sY8wQ2et19Geak1qecIE01\n2. Or call us: +1 (555) 123-4567\n\n💳 We accept all major credit cards and PayPal.\n🔒 100% secure checkout\n\nWould you like me to help with anything else?`;
     } else {
       // General AI response
       try {

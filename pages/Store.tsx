@@ -9,8 +9,7 @@ import { GradientText } from '../components/ui/FloatingElements';
 import { useAuth, getAuthToken } from '../context/AuthContext';
 import { ShoppingCart, Tags, ArrowRight, Download, ChevronRight, AlertTriangle, Loader2, CreditCard } from 'lucide-react';
 
-// Placeholder Stripe link - replace with actual Stripe payment link
-const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/PLACEHOLDER';
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/7sY8wQ2et19Geak1qecIE01';
 
 type StoreCategory = {
   slug: string;
